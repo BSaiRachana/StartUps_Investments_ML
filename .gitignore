@@ -1,2 +1,4 @@
 # Ignore Files
 .DS_Store
+.Rhistory
+.RData
