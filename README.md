@@ -1,6 +1,7 @@
 # StartUps_Investments_ML
 
 ``` Angel -> Pre-Seed -> Seed -> Venture -> Round A -> Round B -> Round C ```
+
 [Definitions](https://support.crunchbase.com/hc/en-us/articles/115010458467-Glossary-of-Funding-Types)
 
 [Source 1](https://www.kaggle.com/yashgoyal401/startups-data-analysis-by-using-plots)
