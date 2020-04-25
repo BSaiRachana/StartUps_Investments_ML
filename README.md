@@ -1,5 +1,8 @@
 # StartUps_Investments_ML
 
+``` Angel -> Pre-Seed -> Seed -> Venture -> Round A -> Round B -> Round C ```
+[Definitions](https://support.crunchbase.com/hc/en-us/articles/115010458467-Glossary-of-Funding-Types)
+
 [Source 1](https://www.kaggle.com/yashgoyal401/startups-data-analysis-by-using-plots)
 - [ ] Heatmap
 - [ ] Number of startups founded vs founded_year
@@ -14,3 +17,14 @@
 - [ ] Comapanies status whose fundings are more than 1 Billion US$ vs status (pie)
 - [ ] top 32 Highest funded companies vs funding_total_usd
 - [ ] Founded year of top funded companies vs founded_year
+
+[Source 2](https://www.kaggle.com/omarismail/startup-investments-in-nordic-countries)
+
+- [ ] When were the well-known companies founded?
+- [ ] Venture/Seed for each company (also by region or famous companies works) (bar)
+- [ ] funding_total_usd/venture/seed (also by region or famous companies works) (bar)
+- [ ] Funding sources in different regions
+- [ ] debt_financing vs market
+- [ ] debt_financing vs company
+- [ ] grant recipients vs company
+- [ ] grant and debt_financing in  finland by region
