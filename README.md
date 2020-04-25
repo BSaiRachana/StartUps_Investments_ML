@@ -29,3 +29,8 @@
 - [ ] debt_financing vs company
 - [ ] grant recipients vs company
 - [ ] grant and debt_financing in  finland by region
+- [ ] Funding sources in USA
+- [ ] Startups got funding in seed stage
+- [ ] Startups got funding by VC
+- [ ] Startups got funding by angels
+- [ ] Sum investment in each round
