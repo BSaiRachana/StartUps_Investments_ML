@@ -51,6 +51,14 @@ str(dat)
 # Datatypes
 # Categorical Variables:  market, status, country_code, state_code
 
+# Create new column: Success or not Success
+# Acquired, post_ipo_equity or post_ipo_equity and Acquired
+
+dat$post_success <- ifelse(dat$status=="acquired", 1,
+               ifelse(dat$post_ipo_equity > 0, 1,
+                      ifelse((dat$status=="acquired") && (dat$post_ipo_equity > 0), 1,
+                                    0  ))) # all other values map to 0
+
 # Saving file
 write.csv(dat,'Data_Cleansed.csv')
 saveRDS(dat, file = "Data_Cleansed.rds")

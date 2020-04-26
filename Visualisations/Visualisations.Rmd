@@ -18,6 +18,12 @@ dat <- readRDS("/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/
 # Visualisation
 
 ```{r}
+# Heatmap 
+# TBD
+```
+
+
+```{r}
 ##### GRAPHS ########
 
 # Founding year
@@ -75,3 +81,20 @@ dat %>% count(city)%>% arrange(-n) %>% head(30) %>%
   theme(legend.position="none") +
   ggtitle("Number of Startups in Cities") + xlab("Cities") + ylab("Count")
 ```
+
+```{r}
+# No. of Startups vs Status
+dat %>% count(status)%>% arrange(-n) %>%
+  ggplot(aes(reorder(status, n), n)) + geom_col(aes(fill=status))  +
+  theme(legend.position="none") +
+  ggtitle("No. of Startups vs Status") + xlab("Status") + ylab("Count")
+```
+
+```{r}
+# No. of Startups vs Status: PIE
+dat %>% count(status)%>% arrange(-n) %>%
+  ggplot(aes(reorder(status, n), n, fill=status))  + geom_bar(stat="identity", width=1) +
+  theme(legend.position="none") + coord_polar("y", start=0) +
+  ggtitle("No. of Startups vs Status") + xlab("Status") + ylab("Count")
+```
+

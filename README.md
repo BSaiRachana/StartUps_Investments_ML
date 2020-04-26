@@ -11,7 +11,7 @@
 - [X] Number of startups vs region 
 - [X] Number of startups vs city
 - [X] Number of startups vs market  
-- [ ] status vs Number of startups (bar, pie)
+- [X] status vs Number of startups (bar, pie)
 - [X] Number of startups founded since 2000 vs founded_year (since 2000)
 - [X] Top 10 market leaders
 - [ ] Companies status who got seed funding vs status (pie)
