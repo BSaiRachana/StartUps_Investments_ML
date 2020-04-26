@@ -53,3 +53,4 @@ str(dat)
 
 # Saving file
 write.csv(dat,'Data_Cleansed.csv')
+saveRDS(dat, file = "Data_Cleansed.rds")
