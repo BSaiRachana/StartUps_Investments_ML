@@ -49,7 +49,28 @@ dat$last_funding_at <- NULL
 str(dat)
 
 # Datatypes
-# Categorical Variables:  market, status, country_code, state_code
+# Categorical Variables:  name, category_list, market, status, state_code, region, city, founded_at, founded_month, founded_quarter,
+#                         founded_year, first_funding_day, first_funding_month, first_funding_year, last_funding_day, last_funding_month,
+#                         last_funding_year
+
+dat$category_list<-factor(dat$category_list)
+dat$market<-factor(dat$market)
+dat$status<-factor(dat$status)
+dat$state_code<-factor(dat$state_code)
+dat$region<-factor(dat$region)
+dat$city<-factor(dat$city)
+dat$founded_at<-factor(dat$founded_at)
+dat$founded_month<-factor(dat$founded_month)
+dat$founded_quarter<-factor(dat$founded_quarter)
+dat$founded_year<-factor(dat$founded_year)
+dat$first_funding_day<-factor(dat$first_funding_day)
+dat$first_funding_month<-factor(dat$first_funding_month)
+dat$first_funding_year<-factor(dat$first_funding_year)
+dat$last_funding_day<-factor(dat$last_funding_day)
+dat$last_funding_month<-factor(dat$last_funding_month)
+dat$last_funding_year<-factor(dat$last_funding_year)
+
+
 
 # Create new column: Success or not Success
 # Acquired, post_ipo_equity or post_ipo_equity and Acquired
@@ -58,6 +79,10 @@ dat$post_success <- ifelse(dat$status=="acquired", 1,
                ifelse(dat$post_ipo_equity > 0, 1,
                       ifelse((dat$status=="acquired") && (dat$post_ipo_equity > 0), 1,
                                     0  ))) # all other values map to 0
+
+dat$post_success <- factor(dat$post_success)
+
+str(dat)
 
 # Saving file
 write.csv(dat,'Data_Cleansed.csv')

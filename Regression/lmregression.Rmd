@@ -1,0 +1,18 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+dat <- readRDS("/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/IST 5535/Projects/StartUps_Investments_ML/Dataset/Data_Cleansed.rds")
+```
+
+```{r}
+# Regress mpg on wt
+LR1 <- lm(post_success ~ ., data = dat)
+summary(LR1)
+```
+
+
