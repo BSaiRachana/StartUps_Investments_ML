@@ -7,12 +7,14 @@ output:
 
 ```{r}
 dat <- readRDS("/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/IST 5535/Projects/StartUps_Investments_ML/Dataset/Data_Cleansed.rds")
+datCopy <- dat
 ```
-
+# Need to balance the imbalance dataset first!
 ```{r}
-# Regress mpg on wt
-LR1 <- lm(post_success ~ ., data = dat)
-summary(LR1)
+# post_success
+datCopy$name <- NULL
+logit.fit <- glm(datCopy$post_success ~ ., family = binomial(link='logit'), data=datCopy)
+summary(logit.fit)
 ```
 
 
