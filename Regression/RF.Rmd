@@ -1,0 +1,152 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+```{r}
+# OUT OF SAMPLE
+# IN SAMPLE
+# MODEL COMPARISION
+# INTERPRETATION - also check p-values
+# LDA
+# QDA
+
+library(caret)
+library(doParallel)
+```
+
+```{r}
+cl <- makeCluster(detectCores())
+registerDoParallel(cl)
+```
+
+
+```{r}
+dat <- readRDS("../Dataset/Data_Cleansed.rds")
+datCopy <- dat
+datCopy$name <- NULL
+```
+
+# OUT OF SAMPLE PREDICTION
+##### Need to balance the imbalance dataset first!
+
+```{r}
+# post_success
+'%ni%' <- Negate('%in%')  # define 'not in' func
+options(scipen=999)  # prevents printing scientific notations.
+
+# Prep Training and Test data.
+set.seed(100)
+trainDataIndex <- createDataPartition(datCopy$post_success, p=0.7, list = F)  # 70% training data
+trainData <- datCopy[trainDataIndex, ]
+testData <- datCopy[-trainDataIndex, ]
+table(trainData$post_success)
+```
+
+```{r}
+# Down Sample
+set.seed(100)
+down_train <- downSample(x = trainData[, colnames(trainData) %ni% "post_success"],
+                         y = trainData$post_success)
+
+table(down_train$Class)
+colnames(down_train)[which(names(down_train) == "Class")] <- "post_success"
+```
+
+```{r}
+str(down_train)
+```
+
+
+```{r}
+# Run algorithms using 5-fold cross validation
+fitControl <- trainControl(method="cv", number=5)
+```
+
+```{r}
+library(randomForest)
+#library(ranger)
+```
+
+```{r}
+down_train$founded_year <- NULL
+down_train$state_code <- NULL
+down_train$region <- NULL
+down_train$city <- NULL
+down_train$category_list <- NULL
+down_train$market <- NULL
+down_train$founded_at <- NULL
+down_train$first_funding_day <- NULL
+down_train$last_funding_day <- NULL
+#down_train$round_H <- NULL
+#down_train$secondary_market <- NULL
+```
+
+```{r}
+rf_fit <- randomForest(post_success ~ ., data = down_train,
+                           mtry = 5, importance = TRUE)
+
+rf_fit
+```
+
+```{r}
+rf_yhat <- predict(rf_fit, newdata = testData)
+
+postResample(rf_yhat, testData$post_success)
+```
+
+```{r}
+# Plot the importance
+varImpPlot(rf_fit)
+```
+
+
+```{r}
+tuneGrid <- data.frame(mtry =1:9)
+
+tuneGrid
+```
+
+```{r}
+#summary(down_train)
+#unique(down_train$secondary_market)
+```
+
+
+```{r}
+## Train a Random Forest model with 5-fold cross-validation
+set.seed(100)
+
+rf_fit_tuned <- train(post_success ~ ., data = down_train, method="rf", trControl=fitControl, tuneGrid = tuneGrid)
+
+#rf_fit <- train(post_success ~ ., data = down_train, method="rf", trControl=fitControl)
+```
+
+```{r}
+print(rf_fit_tuned)
+```
+
+```{r}
+plot(rf_fit_tuned)
+```
+
+```{r}
+rf_fit_final <- train(post_success ~ ., data = down_train, method="rf", trControl=fitControl)
+```
+
+```{r}
+print(rf_fit_final)
+```
+
+```{r}
+plot(rf_fit_final)
+```
+
+```{r}
+stopCluster(cl)
+```
+
+
+
+
