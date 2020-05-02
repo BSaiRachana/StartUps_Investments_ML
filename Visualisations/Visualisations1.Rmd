@@ -58,11 +58,11 @@ dat %>% count(state_code)%>% arrange(-n) %>% head(20) %>%
 
 ```{r}
 # Startups since 2000
-dat %>% filter(founded_year>1999) %>% count(founded_year)%>% arrange(-n) %>% 
- ggplot(aes(founded_year, n), n) + geom_col(aes(fill=founded_year)) + 
- theme(legend.position="none") + 
- ggtitle("Year Founded") + xlab("Year") + ylab("Count") + 
- theme(axis.text.x=element_text(angle=40))
+#dat %>% filter(founded_year>1999) %>% count(founded_year)%>% arrange(-n) %>% 
+# ggplot(aes(founded_year, n), n) + geom_col(aes(fill=founded_year)) + 
+# theme(legend.position="none") + 
+# ggtitle("Year Founded") + xlab("Year") + ylab("Count") + 
+# theme(axis.text.x=element_text(angle=40))
 ```
 
 ```{r}
