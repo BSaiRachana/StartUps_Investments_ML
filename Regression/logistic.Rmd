@@ -13,8 +13,14 @@ output:
 # QDA
 
 library(caret)
-library(speedglm)
+library(doParallel)
 ```
+
+```{r}
+cl <- makeCluster(detectCores())
+registerDoParallel(cl)
+```
+
 
 ```{r}
 dat <- readRDS("/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/IST 5535/Projects/StartUps_Investments_ML/Dataset/Data_Cleansed.rds")
@@ -49,8 +55,22 @@ colnames(down_train)[which(names(down_train) == "Class")] <- "post_success"
 ```
 
 ```{r}
-logit.fit <- speedglm(post_success ~ ., family = binomial(link='logit'), data=down_train)
-summary(logit.fit)
+## Train a logistic regression model with 10-fold cross-validation
+fitControl <- trainControl(method = "cv",number = 10)
+
+set.seed(100)
+logit_fit <- train(post_success ~ ., data = down_train,
+                   trControl = fitControl,
+                   method="glm", family=binomial(link='logit'))
 ```
+
+```{r}
+print(logit_fit)
+```
+
+```{r}
+stopCluster(cl)
+```
+
 
 
