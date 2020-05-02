@@ -1,31 +1,15 @@
----
-title: "R Notebook"
-output:
-  html_document:
-    df_print: paged
-editor_options: 
-  chunk_output_type: console
----
-```{r}
-
 library(caret)
 library(doParallel)
-```
 
-```{r}
 cl <- makeCluster(detectCores())
 registerDoParallel(cl)
-```
 
-
-```{r} 
 dat <- readRDS("/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/IST 5535/Projects/StartUps_Investments_ML/Dataset/Data_Cleansed.rds")
-```
+dat$name <- NULL
 
-# Split & Under Sample
 
-```{r}
-# post_success
+# SPLIT AND UNDERSAMPLE
+
 '%ni%' <- Negate('%in%')  # define 'not in' func
 options(scipen=999)  # prevents printing scientific notations.
 
@@ -35,9 +19,7 @@ trainDataIndex <- createDataPartition(dat$post_success, p=0.7, list = F)  # 70% 
 trainData <- dat[trainDataIndex, ]
 testData <- dat[-trainDataIndex, ]
 table(trainData$post_success)
-```
 
-```{r}
 # Down Sample
 set.seed(100)
 down_train <- downSample(x = trainData[, colnames(trainData) %ni% "post_success"],
@@ -45,49 +27,28 @@ down_train <- downSample(x = trainData[, colnames(trainData) %ni% "post_success"
 
 table(down_train$Class)
 colnames(down_train)[which(names(down_train) == "Class")] <- "post_success"
-```
 
-# SVM
-
-```{r}
 set.seed(100)
 
-## Train a logistic regression model with 10-fold cross-validation
-fitControl <- trainControl(method = "cv",number = 10)
+## Train a logistic regression model with 5-fold cross-validation
+fitControl <- trainControl(method = "cv",number = 5, verboseIter = TRUE)
 
 
 svmRadial_fit <- train(post_success ~ ., data = down_train,
                        trControl = fitControl, method = "svmRadial",
                        verbose=TRUE)
-```
 
-```{r}
 # In-sample performance
 confusionMatrix(svmRadial_fit)
-```
 
-
-```{r}
 # Plot resampling profile by accuracy
 plot(svmRadial_fit)
-```
 
-
-```{r}
 # Plot resampling profile by kappa statistic
 plot(svmRadial_fit, metric = "Kappa")
-```
 
-```{r}
 # Out-of-sample performance
 confusionMatrix(predict(svmRadial_fit, newdata = testData),
-                testData$post_success, positive = 'Yes')
-```
+                testData$post_success, positive = "1")
 
-
-```{r}
 stopCluster(cl)
-```
-
-
-
