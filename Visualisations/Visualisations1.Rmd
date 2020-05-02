@@ -200,3 +200,114 @@ barplot(d[1:10,]$freq, las = 2, names.arg = d[1:10,]$word,
         ylab = "Word frequencies")
 ```
 
+```{r}
+dat %>%
+  group_by(post_success) %>%
+  top_n(10, market)
+```
+
+```{r}
+by_origin_monthly_incorrect <- dat %>% 
+  group_by(post_success) %>% 
+  group_by(market) %>% 
+  summarize(count = n()) %>%
+  arrange(desc(count)) %>%
+  top_n(10)
+by_origin_monthly_incorrect
+#test <- by_origin_monthly_incorrect[order(-count,)]
+#test
+
+```
+
+```{r}
+d = data.frame(dat['market'],dat['post_success'],dat['status'],dat['founded_year'])
+d = subset(d, dat$market == "Software"|dat$market == "Biotechnology"|dat$market == "Mobile"|dat$market == "Enterprise Software"|dat$market == "Curated Web"|dat$market == "Health Care"|dat$market == "E-Commerce"|dat$market == "Hardware + Software"|dat$market == "Advertising"|dat$market == "Health and Wellness")
+d
+```
+
+
+```{r}
+ggplot(data = d, aes(x=market, fill = post_success)) + 
+  theme_classic() +
+  ggtitle("Distribution of Success Among Top 10 Markets") + 
+  xlab("Market") +
+  ylab("Number of Companies") + 
+  geom_bar(position="dodge") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+ggplot(data=dat, aes(x=post_success, y=venture, fill = post_success)) + 
+  theme_classic() +
+  geom_boxplot() + 
+  ggtitle("Distribution of Venture Capital Grouped by Success") + 
+  xlab("Success") +
+  ylab("Venture Capital")
+```
+
+```{r}
+ggplot(data = d, aes(x=market, fill = status)) + 
+  theme_classic() +
+  ggtitle("Distribution of Current StartUps Status Among Top 10 Markets") + 
+  xlab("Market") +
+  ylab("Number of Companies") + 
+  geom_bar(position="dodge") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+d1 = subset(d, d$founded_year == 2000:2014)
+d1
+```
+
+
+```{r}
+ggplot(data = d1, aes(x=market, fill = founded_year)) + 
+  theme_classic() +
+  ggtitle("Distribution of Current StartUps Status Among Top 10 Markets") + 
+  xlab("Market") +
+  ylab("Number of Companies") + 
+  geom_bar(position="dodge") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+ggplot(data = d1, aes(x=founded_year, fill = market)) + 
+  theme_classic() +
+  ggtitle("Distribution of Current StartUps Status Among Top 10 Markets") + 
+  xlab("Market") +
+  ylab("Number of Companies") + 
+  geom_bar(position="dodge") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+ggplot(data = d1, aes(x=founded_year, fill = post_success)) + 
+  theme_classic() +
+  ggtitle("Distribution of Current StartUps Status Among Top 10 Markets") + 
+  xlab("Market") +
+  ylab("Number of Companies") + 
+  geom_bar(position="dodge") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+ggplot(data = d1, aes(x=founded_year, fill = status)) + 
+  theme_classic() +
+  ggtitle("Distribution of Current StartUps Status Among Top 10 Markets") + 
+  xlab("Market") +
+  ylab("Number of Companies") + 
+  geom_bar(position="dodge") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+d2 = subset(dat, dat$founded_year == 2000:2014)
+ggplot(data = d2, aes(x=founded_year, fill = status)) + 
+  theme_classic() +
+  ggtitle("Distribution of Current StartUps Status Among Top 10 Markets") + 
+  xlab("Market") +
+  ylab("Number of Companies") + 
+  geom_bar(position="dodge") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
