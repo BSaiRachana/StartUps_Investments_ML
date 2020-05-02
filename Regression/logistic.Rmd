@@ -4,16 +4,52 @@ output:
   html_document:
     df_print: paged
 ---
+```{r}
+# OUT OF SAMPLE
+# IN SAMPLE
+# MODEL COMPARISION
+# INTERPRETATION - also check p-values
+# LDA
+# QDA
+
+library(caret)
+library(speedglm)
+```
 
 ```{r}
 dat <- readRDS("/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/IST 5535/Projects/StartUps_Investments_ML/Dataset/Data_Cleansed.rds")
 datCopy <- dat
+datCopy$name <- NULL
 ```
-# Need to balance the imbalance dataset first!
+
+# OUT OF SAMPLE PREDICTION
+##### Need to balance the imbalance dataset first!
+
 ```{r}
 # post_success
-datCopy$name <- NULL
-logit.fit <- glm(datCopy$post_success ~ ., family = binomial(link='logit'), data=datCopy)
+'%ni%' <- Negate('%in%')  # define 'not in' func
+options(scipen=999)  # prevents printing scientific notations.
+
+# Prep Training and Test data.
+set.seed(100)
+trainDataIndex <- createDataPartition(datCopy$post_success, p=0.7, list = F)  # 70% training data
+trainData <- datCopy[trainDataIndex, ]
+testData <- datCopy[-trainDataIndex, ]
+table(trainData$post_success)
+```
+
+```{r}
+# Down Sample
+set.seed(100)
+down_train <- downSample(x = trainData[, colnames(trainData) %ni% "post_success"],
+                         y = trainData$post_success)
+
+table(down_train$Class)
+colnames(down_train)[which(names(down_train) == "Class")] <- "post_success"
+```
+
+```{r}
+logit.fit <- speedglm(post_success ~ ., family = binomial(link='logit'), data=down_train)
 summary(logit.fit)
 ```
 
