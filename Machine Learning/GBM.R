@@ -5,7 +5,6 @@ cl <- makeCluster(detectCores())
 registerDoParallel(cl)
 
 dat <- readRDS("/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/IST 5535/Projects/StartUps_Investments_ML/Dataset/Data_CE_Filtered.rds")
-dat$name <- NULL
 
 # SPLIT AND UNDERSAMPLE
 
@@ -21,18 +20,22 @@ table(trainData$post_success)
 
 # Down Sample
 set.seed(100)
-down_train <- downSample(x = trainData[, colnames(trainData) %ni% "post_success"],
-                         y = trainData$post_success)
+# down_train <- downSample(x = trainData[, colnames(trainData) %ni% "post_success"],
+#                           y = trainData$post_success)
 
-table(down_train$Class)
-colnames(down_train)[which(names(down_train) == "Class")] <- "post_success"
+# Up Sample
+up_train <- upSample(x = trainData[, colnames(trainData) %ni% "post_success"],
+                     y = trainData$post_success)
+
+table(up_train$Class)
+colnames(up_train)[which(names(up_train) == "Class")] <- "post_success"
 
 set.seed(100)
 
 ## Train a logistic regression model with 10-fold cross-validation
 fitControl <- trainControl(method = "cv",number = 10, verboseIter = TRUE)
 
-gbm_fit <- train(post_success ~ ., data = down_train,
+gbm_fit <- train(post_success ~ ., data = up_train,
                  trControl = fitControl, method = "gbm",
                  verbose=TRUE)
 

@@ -23,9 +23,8 @@ registerDoParallel(cl)
 
 
 ```{r}
-dat <- readRDS("/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/IST 5535/Projects/StartUps_Investments_ML/Dataset/Data_Cleansed.rds")
+dat <- readRDS("/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/IST 5535/Projects/StartUps_Investments_ML/Dataset/Data_CE_Filtered.rds")
 datCopy <- dat
-datCopy$name <- NULL
 ```
 
 # OUT OF SAMPLE PREDICTION
@@ -47,7 +46,7 @@ table(trainData$post_success)
 ```{r}
 # Down Sample
 set.seed(100)
-down_train <- downSample(x = trainData[, colnames(trainData) %ni% "post_success"],
+down_train <- upSample(x = trainData[, colnames(trainData) %ni% "post_success"],
                          y = trainData$post_success)
 
 table(down_train$Class)
@@ -67,6 +66,18 @@ logit_fit <- train(post_success ~ ., data = down_train,
 ```{r}
 print(logit_fit)
 ```
+
+```{r}
+# In-sample performance
+confusionMatrix(logit_fit)
+```
+
+```{r}
+# Out-of-sample performance
+confusionMatrix(predict(logit_fit, newdata = testData),
+                testData$post_success, positive = '1')
+```
+
 
 ```{r}
 stopCluster(cl)

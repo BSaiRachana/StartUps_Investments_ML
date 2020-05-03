@@ -5,8 +5,6 @@ cl <- makeCluster(detectCores())
 registerDoParallel(cl)
 
 dat <- readRDS("/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/IST 5535/Projects/StartUps_Investments_ML/Dataset/Data_CE_Filtered.rds")
-dat$name <- NULL
-
 
 # SPLIT AND UNDERSAMPLE
 
