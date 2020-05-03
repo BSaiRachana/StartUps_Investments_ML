@@ -1,0 +1,149 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+```{r}
+# OUT OF SAMPLE
+# IN SAMPLE
+# MODEL COMPARISION
+# INTERPRETATION - also check p-values
+# LDA
+# QDA
+
+library(caret)
+library(doParallel)
+```
+
+```{r}
+cl <- makeCluster(detectCores())
+registerDoParallel(cl)
+```
+
+
+```{r}
+#dat <- readRDS("../Dataset/Data_Cleansed.rds")
+dat <- readRDS("../Dataset/Data_CE_Filtered.rds")
+datCopy <- dat
+datCopy$name <- NULL
+```
+
+```{r}
+cols <- c("market_1", "market_2", "market_3", "market_4", "market_5", "market_6", "market_7", "market_8", "market_9", "market_10", "region_1", "region_2", "region_3", "region_4", "region_5", "region_6", "region_7", "region_8", "state_code_1", "state_code_2", "state_code_3", "state_code_4", "state_code_5", "state_code_6")
+datCopy[cols] <- lapply(datCopy[cols], as.numeric)
+```
+
+```{r}
+datCopy$status <- NULL
+datCopy$founded_at <- NULL
+datCopy$founded_month <- NULL
+datCopy$founded_quarter <- NULL
+datCopy$founded_year <- NULL
+datCopy$first_funding_day <- NULL
+datCopy$first_funding_month <- NULL
+datCopy$first_funding_year <- NULL
+datCopy$last_funding_day <- NULL
+datCopy$last_funding_month <- NULL
+datCopy$last_funding_year <- NULL
+```
+
+
+datCopy$market_1 <- factor(datCopy$market_1)# OUT OF SAMPLE PREDICTION
+##### Need to balance the imbalance dataset first!
+
+```{r}
+# post_success
+'%ni%' <- Negate('%in%')  # define 'not in' func
+options(scipen=999)  # prevents printing scientific notations.
+
+# Prep Training and Test data.
+set.seed(100)
+trainDataIndex <- createDataPartition(datCopy$post_success, p=0.7, list = F)  # 70% training data
+trainData <- datCopy[trainDataIndex, ]
+testData <- datCopy[-trainDataIndex, ]
+table(trainData$post_success)
+```
+
+
+```{r}
+# Down Sample
+set.seed(100)
+down_train <- upSample(x = trainData[, colnames(trainData) %ni% "post_success"],
+                         y = trainData$post_success)
+
+table(down_train$Class)
+colnames(down_train)[which(names(down_train) == "Class")] <- "post_success"
+```
+
+```{r}
+str(down_train)
+```
+
+
+```{r}
+# Run algorithms using 5-fold cross validation
+fitControl <- trainControl(method="cv", number= 10, allowParallel = TRUE)
+```
+
+```{r}
+library(class)
+# Select the true values of the response in training set
+cl <- down_train[,"post_success"]
+cl
+```
+
+
+```{r}
+accuracy <- NULL
+sensitivity <-NULL
+specificity <- NULL
+  
+for(i in 1:20) {
+  knn.fit <- knn(down_train[,-1],testData[,-1], cl, k = i)
+  accuracy <- c(accuracy, mean(knn.fit == testData$post_success))
+  sensitivity <- c(sensitivity, sensitivity(knn.fit,testData$post_success, positive = "Yes"))
+  specificity <- c(specificity, specificity(knn.fit,testData$post_success, negative = "No"))
+}
+
+balanced_accuracy = (sensitivity + specificity)/2
+#knn_fit <- train(post_success ~ ., data = down_train, method="knn", trControl=fitControl)
+```
+
+```{r}
+plot(1:20, accuracy, type = "l" ,col = "red", 
+     ylab = "Measures", xlab = "k",ylim = c(0.0, 1.0))
+
+lines(1:20, sensitivity, type = "l", col = "blue")
+
+lines(1:20, specificity, type = "l", col = "green")
+
+lines(1:20, balanced_accuracy, type = "l", col = "orange")
+
+legend("topright", legend = c("accuracy","sensitivity","specificity", "balanced accuracy"),
+       col = c("red","blue","green","orange"), lty = 1)
+```
+
+
+```{r}
+#print(knn_fit)
+```
+
+```{r}
+#plot(knn_fit)
+```
+
+```{r}
+#predictions <- predict(knn_fit, testData)
+#confusionMatrix(predictions, testData$post_success)
+```
+
+
+
+```{r}
+stopCluster(cl)
+```
+
+
+
+

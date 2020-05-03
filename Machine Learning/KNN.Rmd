@@ -45,6 +45,7 @@ testData <- datCopy[-trainDataIndex, ]
 table(trainData$post_success)
 ```
 
+
 ```{r}
 # Down Sample
 set.seed(100)
@@ -62,87 +63,29 @@ str(down_train)
 
 ```{r}
 # Run algorithms using 5-fold cross validation
-fitControl <- trainControl(method="cv", number= 5, allowParallel = TRUE)
+fitControl <- trainControl(method="cv", number= 10, allowParallel = TRUE)
 ```
 
-```{r}
-library(randomForest)
-#library(ranger)
-```
-
-```{r}
-#down_train$founded_year <- NULL
-#down_train$state_code <- NULL
-#down_train$region <- NULL
-#down_train$city <- NULL
-#down_train$category_list <- NULL
-#down_train$market <- NULL
-#down_train$founded_at <- NULL
-#down_train$first_funding_day <- NULL
-#down_train$last_funding_day <- NULL
-#down_train$round_H <- NULL
-#down_train$secondary_market <- NULL
-```
-
-```{r}
-rf_fit <- randomForest(post_success ~ ., data = down_train,
-                           mtry = 5, importance = TRUE)
-
-rf_fit
-```
-
-```{r}
-rf_yhat <- predict(rf_fit, newdata = testData)
-
-postResample(rf_yhat, testData$post_success)
-```
-
-```{r}
-# Plot the importance
-varImpPlot(rf_fit)
-```
 
 
 ```{r}
-#tuneGrid <- data.frame(mtry =1:58)
-
-#tuneGrid
+knn_fit <- train(post_success ~ ., data = down_train, method="knn", trControl=fitControl)
 ```
 
 ```{r}
-#summary(down_train)
-#unique(down_train$secondary_market)
-```
-
-
-```{r}
-## Train a Random Forest model with 5-fold cross-validation
-#set.seed(100)
-
-#rf_fit_tuned <- train(post_success ~ ., data = down_train, method="rf", trControl=fitControl, tuneGrid = tuneGrid)
-
-#rf_fit <- train(post_success ~ ., data = down_train, method="rf", trControl=fitControl)
+print(knn_fit)
 ```
 
 ```{r}
-#print(rf_fit_tuned)
+plot(knn_fit)
 ```
 
 ```{r}
-#plot(rf_fit_tuned)
+predictions <- predict(knn_fit, testData)
+confusionMatrix(predictions, testData$post_success)
 ```
 
-```{r}
-rf_fit_final <- train(post_success ~ ., data = down_train, method="rf", trControl=fitControl)
-```
 
-```{r}
-print(rf_fit_final)
-```
-
-```{r}
-plot(rf_fit_final)
-```
 
 ```{r}
 stopCluster(cl)
