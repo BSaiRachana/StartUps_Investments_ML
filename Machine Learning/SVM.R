@@ -4,7 +4,7 @@ library(doParallel)
 cl <- makeCluster(detectCores())
 registerDoParallel(cl)
 
-dat <- readRDS("/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/IST 5535/Projects/StartUps_Investments_ML/Dataset/Data_Cleansed.rds")
+dat <- readRDS("/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/IST 5535/Projects/StartUps_Investments_ML/Dataset/Data_CE_Filtered.rds")
 dat$name <- NULL
 
 
@@ -31,7 +31,7 @@ colnames(down_train)[which(names(down_train) == "Class")] <- "post_success"
 set.seed(100)
 
 ## Train a logistic regression model with 5-fold cross-validation
-fitControl <- trainControl(method = "cv",number = 5, verboseIter = TRUE)
+fitControl <- trainControl(method = "cv",number = 10, verboseIter = TRUE)
 
 
 svmRadial_fit <- train(post_success ~ ., data = down_train,

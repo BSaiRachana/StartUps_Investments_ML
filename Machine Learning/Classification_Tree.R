@@ -5,8 +5,7 @@ library(tree)
 cl <- makeCluster(detectCores())
 registerDoParallel(cl)
 
-dat <- readRDS("/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/IST 5535/Projects/StartUps_Investments_ML/Dataset/Data_Cleansed.rds")
-dat$name <- NULL
+dat <- readRDS("/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/IST 5535/Projects/StartUps_Investments_ML/Dataset/Data_CE_Filtered.rds")
 
 # SPLIT AND UNDERSAMPLE
 
@@ -41,11 +40,5 @@ summary(tree_churn)
 # Plot the decison tree
 plot(tree_churn)
 text(tree_churn, cex = 0.75, col = 'red')
-  
-# Plot the decison tree
-plot(tree_churn)
-
-text(tree_churn, cex = 0.75, 
-     col = 'red', pretty = FALSE)
 
 stopCluster(cl)
