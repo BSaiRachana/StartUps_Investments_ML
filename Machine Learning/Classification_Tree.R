@@ -1,5 +1,6 @@
 library(caret)
 library(doParallel)
+library(tree)
 
 cl <- makeCluster(detectCores())
 registerDoParallel(cl)
@@ -24,29 +25,27 @@ set.seed(100)
 down_train <- downSample(x = trainData[, colnames(trainData) %ni% "post_success"],
                          y = trainData$post_success)
 
+str(down_train)
+
 table(down_train$Class)
 colnames(down_train)[which(names(down_train) == "Class")] <- "post_success"
 
 set.seed(100)
 
-## Train a logistic regression model with 10-fold cross-validation
-fitControl <- trainControl(method = "cv",number = 5, verboseIter = TRUE)
+# Fit a decision tree
+tree_churn <- tree(post_success ~ ., data = dat)
 
-lda_fit <- train(post_success ~ ., data = down_train,
-                 trControl = fitControl, method="glm", family=binomial(link='logit'),
-                 verbose=TRUE)
+# Summary of the decision tree
+summary(tree_churn)
 
-# In-sample performance
-confusionMatrix(lda_fit)
+# Plot the decison tree
+plot(tree_churn)
+text(tree_churn, cex = 0.75, col = 'red')
+  
+# Plot the decison tree
+plot(tree_churn)
 
-# Plot resampling profile by accuracy
-plot(lda_fit)
-
-# Plot resampling profile by kappa statistic
-plot(lda_fit, metric = "Kappa")
-
-# Out-of-sample performance
-confusionMatrix(predict(lda_fit, newdata = testData),
-                testData$post_success, positive = '1')
+text(tree_churn, cex = 0.75, 
+     col = 'red', pretty = FALSE)
 
 stopCluster(cl)
