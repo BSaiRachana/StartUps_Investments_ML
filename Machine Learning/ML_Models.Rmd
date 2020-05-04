@@ -17,6 +17,12 @@ library(doParallel)
 ```
 
 ```{r}
+#memory.limit(24000)
+memory.limit(10 * 10^10)
+```
+
+
+```{r}
 cl <- makeCluster(detectCores())
 registerDoParallel(cl)
 ```
@@ -61,6 +67,8 @@ logit_fit <- train(post_success ~ ., data = trainData,
 
 ```
 
+
+
 ```{r}
 #print(logit_fit)
 ```
@@ -78,6 +86,7 @@ confusionMatrix(predict(logit_fit, newdata = testData),
 
 ```{r}
 ## Train a GBM model with 10-fold cross-validation
+set.seed(100)
 gbm_fit <- train(post_success ~ ., data = trainData,
                  trControl = fitControl, method = "gbm",
                  verbose=TRUE)
@@ -111,6 +120,7 @@ confusionMatrix(predict(gbm_fit, newdata = testData),
 
 ```{r}
 ## Train a KNN model with 10-fold cross-validation
+set.seed(100)
 knn_fit <- train(post_success ~ ., data = trainData, method="knn", trControl=fitControl)
 ```
 
@@ -133,7 +143,8 @@ confusionMatrix(predict(knn_fit, newdata = testData),
 
 ```{r}
 ## Train a Random Forest model with 10-fold cross-validation
-rf_fit <- train(post_success ~ ., data = trainData, method="rf", trControl=fitControl, verbose=TRUE)
+set.seed(100)
+rf_fit <- train(post_success ~ ., data = trainData, method="rf", trControl=fitControl)
 ```
 
 ```{r}
@@ -154,6 +165,7 @@ confusionMatrix(predict(rf_fit, newdata = testData),
 
 ```{r}
 ## Train a SVM model with 10-fold cross-validation
+set.seed(100)
 svmRadial_fit <- train(post_success ~ ., data = trainData,
                        trControl = fitControl, method = "svmRadial",
                        verbose=TRUE)
@@ -210,11 +222,22 @@ dotplot(difValues)
 ```
 
 ```{r}
+library(pROC)
+```
+
+
+```{r}
 accu <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_success)$overall['Accuracy'],
           confusionMatrix(predict(gbm_fit, newdata=testData),testData$post_success)$overall['Accuracy'],
           confusionMatrix(predict(knn_fit, newdata=testData),testData$post_success)$overall['Accuracy'],
           confusionMatrix(predict(rf_fit, newdata=testData),testData$post_success)$overall['Accuracy'],
           confusionMatrix(predict(svmRadial_fit, newdata=testData),testData$post_success)$overall['Accuracy'])
+
+kappa <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_success)$overall['Kappa'],
+          confusionMatrix(predict(gbm_fit, newdata=testData),testData$post_success)$overall['Kappa'],
+          confusionMatrix(predict(knn_fit, newdata=testData),testData$post_success)$overall['Kappa'],
+          confusionMatrix(predict(rf_fit, newdata=testData),testData$post_success)$overall['Kappa'],
+          confusionMatrix(predict(svmRadial_fit, newdata=testData),testData$post_success)$overall['Kappa'])
 
 sensi <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_success,positive='1')$byClass['Sensitivity'],
            confusionMatrix(predict(gbm_fit, newdata=testData),testData$post_success,positive='1')$byClass['Sensitivity'],
@@ -228,11 +251,56 @@ speci <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_su
            confusionMatrix(predict(rf_fit, newdata=testData),testData$post_success,positive='1')$byClass['Specificity'],
            confusionMatrix(predict(svmRadial_fit, newdata=testData),testData$post_success,positive='1')$byClass['Specificity'])
 
-data.frame(Accuracy = round(accu,5), 
-           Sensitivity = round(sensi,5), 
-           Specificity = round(speci,5),
-           Balanced.Accuracy = round((sensi + speci)/2,5),
+preci <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_success,positive='1')$byClass['Precision'],
+           confusionMatrix(predict(gbm_fit, newdata=testData),testData$post_success,positive='1')$byClass['Precision'],
+           confusionMatrix(predict(knn_fit, newdata=testData),testData$post_success,positive='1')$byClass['Precision'],
+           confusionMatrix(predict(rf_fit, newdata=testData),testData$post_success,positive='1')$byClass['Precision'],
+           confusionMatrix(predict(svmRadial_fit, newdata=testData),testData$post_success,positive='1')$byClass['Precision'])
+
+f1 <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_success,positive='1')$byClass['F1'],
+           confusionMatrix(predict(gbm_fit, newdata=testData),testData$post_success,positive='1')$byClass['F1'],
+           confusionMatrix(predict(knn_fit, newdata=testData),testData$post_success,positive='1')$byClass['F1'],
+           confusionMatrix(predict(rf_fit, newdata=testData),testData$post_success,positive='1')$byClass['F1'],
+           confusionMatrix(predict(svmRadial_fit, newdata=testData),testData$post_success,positive='1')$byClass['F1'])
+
+auc <- c(roc(testData$post_success, as.numeric(predict(logit_fit, newdata=testData)))$auc,
+         roc(testData$post_success, as.numeric(predict(gbm_fit, newdata=testData)))$auc,
+         roc(testData$post_success, as.numeric(predict(knn_fit, newdata=testData)))$auc,
+         roc(testData$post_success, as.numeric(predict(rf_fit, newdata=testData)))$auc,
+         roc(testData$post_success, as.numeric(predict(svmRadial_fit, newdata=testData)))$auc)
+
+data.frame(Accuracy = round(accu,3),
+           Kappa = round(kappa,3),
+           Precision = round(preci,3),
+           Recall = round(sensi,3), 
+           Specificity = round(speci,3),
+           F1 = round(f1,3),
+           AUC = round(auc,3),
+           Balanced.Accuracy = round((sensi + speci)/2,3),
            row.names = c('Logit','GBM','KNN','RF','SVM'))
+```
+
+```{r}
+logit_fit_roc <- roc(testData$post_success, as.numeric(predict(logit_fit, newdata=testData)))
+gbm_fit_roc <- roc(testData$post_success, as.numeric(predict(gbm_fit, newdata=testData)))
+knn_fit_roc <- roc(testData$post_success, as.numeric(predict(knn_fit, newdata=testData)))
+rf_fit_roc <- roc(testData$post_success, as.numeric(predict(rf_fit, newdata=testData)))
+svmRadial_fit_roc <- roc(testData$post_success, as.numeric(predict(svmRadial_fit, newdata=testData)))
+```
+
+```{r}
+plot(logit_fit_roc, col = "blue")
+par(new = TRUE)
+plot(gbm_fit_roc, col = "green", xaxt = "n", yaxt = "n")
+par(new = TRUE)
+plot(knn_fit_roc, col = "red", xaxt = "n", yaxt = "n")
+par(new = TRUE)
+plot(rf_fit_roc, col = "pink", xaxt = "n", yaxt = "n")
+par(new = TRUE)
+plot(svmRadial_fit_roc, col = "orange", xaxt = "n", yaxt = "n")
+
+legend("right", legend = c("Logit", "GBM", "KNN", "RF", "SVM"), col = c("blue", "green", "red", "pink", "orange"), lty = 1)
+
 ```
 
 
