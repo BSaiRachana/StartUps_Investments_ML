@@ -1,0 +1,326 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+```{r}
+# OUT OF SAMPLE
+# IN SAMPLE
+# MODEL COMPARISION
+# INTERPRETATION - also check p-values
+# LDA
+# QDA
+
+library(caret)
+library(doParallel)
+```
+
+```{r}
+#memory.limit(100000000000)
+gc()
+memory.limit(100000000000)
+#memory.size()
+#memory.size(TRUE)
+#memory.limit()
+```
+
+
+```{r}
+cl <- makeCluster(detectCores())
+registerDoParallel(cl)
+```
+
+
+```{r}
+#dat <- readRDS("../Dataset/Data_Cleansed.rds")
+dat <- readRDS("../Dataset/Data_CE_Filtered.rds")
+datCopy <- dat
+#datCopy$name <- NULL
+```
+
+datCopy$market_1 <- factor(datCopy$market_1)# OUT OF SAMPLE PREDICTION
+##### Need to balance the imbalance dataset first!
+
+```{r}
+# post_success
+'%ni%' <- Negate('%in%')  # define 'not in' func
+options(scipen=999)  # prevents printing scientific notations.
+
+# Prep Training and Test data.
+set.seed(100)
+trainDataIndex <- createDataPartition(datCopy$post_success, p=0.7, list = F)  # 70% training data
+trainData <- datCopy[trainDataIndex, ]
+testData <- datCopy[-trainDataIndex, ]
+table(trainData$post_success)
+```
+
+```{r}
+# Down Sample
+set.seed(100)
+train_balanced <- upSample(x = trainData[, colnames(trainData) %ni% "post_success"],
+                         y = trainData$post_success)
+
+table(train_balanced$Class)
+colnames(train_balanced)[which(names(train_balanced) == "Class")] <- "post_success"
+```
+
+```{r}
+# Run algorithms using 10-fold cross validation
+fitControl <- trainControl(method="cv", number= 10, allowParallel = TRUE, verboseIter = TRUE)
+```
+
+
+```{r}
+## Train a logistic regression model with 10-fold cross-validation
+set.seed(100)
+logit_fit <- train(post_success ~ ., data = train_balanced,
+                   trControl = fitControl,
+                   method="glm", family=binomial(link='logit'))
+
+```
+
+
+
+```{r}
+#print(logit_fit)
+```
+
+```{r}
+# In-sample performance
+confusionMatrix(logit_fit)
+```
+
+```{r}
+# Out-of-sample performance
+confusionMatrix(predict(logit_fit, newdata = testData),
+                testData$post_success, positive = '1')
+```
+
+```{r}
+## Train a GBM model with 10-fold cross-validation
+set.seed(100)
+gbm_fit <- train(post_success ~ ., data = train_balanced,
+                 trControl = fitControl, method = "gbm",
+                 verbose=TRUE)
+
+
+```
+
+```{r}
+# In-sample performance
+confusionMatrix(gbm_fit)
+
+```
+
+```{r}
+# Plot resampling profile by accuracy
+#plot(gbm_fit)
+
+```
+
+```{r}
+# Plot resampling profile by kappa statistic
+#plot(gbm_fit, metric = "Kappa")
+
+```
+
+```{r}
+# Out-of-sample performance
+confusionMatrix(predict(gbm_fit, newdata = testData),
+                testData$post_success, positive = '1')
+```
+
+```{r}
+## Train a KNN model with 10-fold cross-validation
+set.seed(100)
+knn_fit <- train(post_success ~ ., data = train_balanced, method="knn", trControl=fitControl)
+```
+
+```{r}
+# In-sample performance
+confusionMatrix(knn_fit)
+
+```
+
+```{r}
+# Plot accuracy across different n values
+#plot(knn_fit)
+```
+
+```{r}
+# Out-of-sample performance
+confusionMatrix(predict(knn_fit, newdata = testData),
+                testData$post_success, positive = '1')
+```
+
+```{r}
+## Train a Random Forest model with 10-fold cross-validation
+set.seed(100)
+rf_fit <- train(post_success ~ ., data = train_balanced, method="rf", trControl=fitControl)
+```
+
+```{r}
+# In-sample performance
+confusionMatrix(rf_fit)
+
+```
+
+```{r}
+#plot(rf_fit)
+```
+
+```{r}
+# Out-of-sample performance
+confusionMatrix(predict(rf_fit, newdata = testData),
+                testData$post_success, positive = '1')
+```
+
+```{r}
+## Train a SVM model with 10-fold cross-validation
+set.seed(100)
+svmRadial_fit <- train(post_success ~ ., data = train_balanced,
+                       trControl = fitControl, method = "svmRadial",
+                       verbose=TRUE)
+```
+
+```{r}
+# In-sample performance
+confusionMatrix(svmRadial_fit)
+
+```
+
+```{r}
+# Plot resampling profile by accuracy
+#plot(svmRadial_fit)
+```
+
+```{r}
+# Plot resampling profile by kappa statistic
+#plot(svmRadial_fit, metric = "Kappa")
+```
+
+```{r}
+# Out-of-sample performance
+confusionMatrix(predict(svmRadial_fit, newdata = testData),
+                testData$post_success, positive = '1')
+```
+
+```{r}
+resamps <- resamples(list(Logit=logit_fit, GBM=gbm_fit, KNN=knn_fit, RF=rf_fit, SVM=svmRadial_fit))
+
+# Summarize the resamples
+summary(resamps)
+```
+
+```{r}
+# Boxplots of resamples
+bwplot(resamps)
+```
+
+```{r}
+# Dot plots of resamples
+dotplot(resamps)
+```
+
+```{r}
+difValues <- diff(resamps)
+
+summary(difValues)
+```
+
+```{r}
+#bwplot(difValues, layout = c(3, 1))
+dotplot(difValues)
+```
+
+```{r}
+library(pROC)
+```
+
+
+```{r}
+accu <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_success)$overall['Accuracy'],
+          confusionMatrix(predict(gbm_fit, newdata=testData),testData$post_success)$overall['Accuracy'],
+          confusionMatrix(predict(knn_fit, newdata=testData),testData$post_success)$overall['Accuracy'],
+          confusionMatrix(predict(rf_fit, newdata=testData),testData$post_success)$overall['Accuracy'],
+          confusionMatrix(predict(svmRadial_fit, newdata=testData),testData$post_success)$overall['Accuracy'])
+
+kappa <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_success)$overall['Kappa'],
+          confusionMatrix(predict(gbm_fit, newdata=testData),testData$post_success)$overall['Kappa'],
+          confusionMatrix(predict(knn_fit, newdata=testData),testData$post_success)$overall['Kappa'],
+          confusionMatrix(predict(rf_fit, newdata=testData),testData$post_success)$overall['Kappa'],
+          confusionMatrix(predict(svmRadial_fit, newdata=testData),testData$post_success)$overall['Kappa'])
+
+sensi <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_success,positive='1')$byClass['Sensitivity'],
+           confusionMatrix(predict(gbm_fit, newdata=testData),testData$post_success,positive='1')$byClass['Sensitivity'],
+           confusionMatrix(predict(knn_fit, newdata=testData),testData$post_success,positive='1')$byClass['Sensitivity'],
+           confusionMatrix(predict(rf_fit, newdata=testData),testData$post_success,positive='1')$byClass['Sensitivity'],
+           confusionMatrix(predict(svmRadial_fit, newdata=testData),testData$post_success,positive='1')$byClass['Sensitivity'])
+
+speci <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_success,positive='1')$byClass['Specificity'],
+           confusionMatrix(predict(gbm_fit, newdata=testData),testData$post_success,positive='1')$byClass['Specificity'],
+           confusionMatrix(predict(knn_fit, newdata=testData),testData$post_success,positive='1')$byClass['Specificity'],
+           confusionMatrix(predict(rf_fit, newdata=testData),testData$post_success,positive='1')$byClass['Specificity'],
+           confusionMatrix(predict(svmRadial_fit, newdata=testData),testData$post_success,positive='1')$byClass['Specificity'])
+
+preci <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_success,positive='1')$byClass['Precision'],
+           confusionMatrix(predict(gbm_fit, newdata=testData),testData$post_success,positive='1')$byClass['Precision'],
+           confusionMatrix(predict(knn_fit, newdata=testData),testData$post_success,positive='1')$byClass['Precision'],
+           confusionMatrix(predict(rf_fit, newdata=testData),testData$post_success,positive='1')$byClass['Precision'],
+           confusionMatrix(predict(svmRadial_fit, newdata=testData),testData$post_success,positive='1')$byClass['Precision'])
+
+f1 <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_success,positive='1')$byClass['F1'],
+           confusionMatrix(predict(gbm_fit, newdata=testData),testData$post_success,positive='1')$byClass['F1'],
+           confusionMatrix(predict(knn_fit, newdata=testData),testData$post_success,positive='1')$byClass['F1'],
+           confusionMatrix(predict(rf_fit, newdata=testData),testData$post_success,positive='1')$byClass['F1'],
+           confusionMatrix(predict(svmRadial_fit, newdata=testData),testData$post_success,positive='1')$byClass['F1'])
+
+auc <- c(roc(testData$post_success, as.numeric(predict(logit_fit, newdata=testData)))$auc,
+         roc(testData$post_success, as.numeric(predict(gbm_fit, newdata=testData)))$auc,
+         roc(testData$post_success, as.numeric(predict(knn_fit, newdata=testData)))$auc,
+         roc(testData$post_success, as.numeric(predict(rf_fit, newdata=testData)))$auc,
+         roc(testData$post_success, as.numeric(predict(svmRadial_fit, newdata=testData)))$auc)
+
+data.frame(Accuracy = round(accu,3),
+           Kappa = round(kappa,3),
+           Precision = round(preci,3),
+           Recall = round(sensi,3), 
+           Specificity = round(speci,3),
+           F1 = round(f1,3),
+           AUC = round(auc,3),
+           Balanced.Accuracy = round((sensi + speci)/2,3),
+           row.names = c('Logit','GBM','KNN','RF','SVM'))
+```
+
+```{r}
+logit_fit_roc <- roc(testData$post_success, as.numeric(predict(logit_fit, newdata=testData)))
+gbm_fit_roc <- roc(testData$post_success, as.numeric(predict(gbm_fit, newdata=testData)))
+knn_fit_roc <- roc(testData$post_success, as.numeric(predict(knn_fit, newdata=testData)))
+rf_fit_roc <- roc(testData$post_success, as.numeric(predict(rf_fit, newdata=testData)))
+svmRadial_fit_roc <- roc(testData$post_success, as.numeric(predict(svmRadial_fit, newdata=testData)))
+```
+
+```{r}
+plot(logit_fit_roc, col = "blue")
+par(new = TRUE)
+plot(gbm_fit_roc, col = "green", xaxt = "n", yaxt = "n")
+par(new = TRUE)
+plot(knn_fit_roc, col = "red", xaxt = "n", yaxt = "n")
+par(new = TRUE)
+plot(rf_fit_roc, col = "pink", xaxt = "n", yaxt = "n")
+par(new = TRUE)
+plot(svmRadial_fit_roc, col = "orange", xaxt = "n", yaxt = "n")
+
+legend("right", legend = c("Logit", "GBM", "KNN", "RF", "SVM"), col = c("blue", "green", "red", "pink", "orange"), lty = 1)
+
+```
+
+
+```{r}
+stopCluster(cl)
+```
+
+
+
+
