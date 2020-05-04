@@ -13,7 +13,7 @@ options(scipen=999)  # prevents printing scientific notations.
 
 # Prep Training and Test data.
 set.seed(100)
-trainDataIndex <- createDataPartition(dat$post_success, p=0.7, list = F)  # 70% training data
+trainDataIndex <- createDataPartition(dat$post_success, p=0.8, list = F)  # 70% training data
 trainData <- dat[trainDataIndex, ]
 testData <- dat[-trainDataIndex, ]
 table(trainData$post_success)
@@ -35,7 +35,7 @@ set.seed(100)
 ## Train a logistic regression model with 10-fold cross-validation
 fitControl <- trainControl(method = "cv",number = 10, verboseIter = TRUE)
 
-gbm_fit <- train(post_success ~ ., data = up_train,
+gbm_fit <- train(post_success ~ ., data = trainData,
                  trControl = fitControl, method = "gbm",
                  verbose=TRUE)
 

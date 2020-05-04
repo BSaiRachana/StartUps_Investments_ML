@@ -2,7 +2,7 @@ library(lubridate)
 
 setwd("/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/IST 5535/Projects/StartUps_Investments_ML/Dataset/")
 dat <- read.csv("/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/IST 5535/Projects/StartUps_Investments_ML/Dataset/US_StartUps_Investments_Data.csv", na.strings = c("", "NA"), stringsAsFactors = FALSE)
-str(dat)
+summary(dat)
 
 # Replacing commas in the column - funding_total_usd
 dat$funding_total_usd <- as.numeric(gsub(",","",dat$funding_total_usd))
@@ -12,6 +12,8 @@ dat <- dat[complete.cases(dat),]
 
 # Remove trailing spaces in column - market
 dat$market <- trimws(dat$market, which = c("both"))
+
+####### COMP ########
 
 # Remove city, homepage_URL and X
 dat$homepage_url <- NULL
@@ -82,7 +84,7 @@ dat$post_success <- ifelse(dat$status=="acquired", 1,
 
 dat$post_success <- factor(dat$post_success)
 
-str(dat)
+summary(dat)
 
 # Saving file
 write.csv(dat,'Data_Cleansed.csv')
