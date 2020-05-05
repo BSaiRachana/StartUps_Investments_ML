@@ -578,17 +578,18 @@ str(datCorr)
 
 We removed columns which are of type "character".
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 chart.Correlation(datCorr, 
                   histogram=TRUE, 
                   method = 'pearson',
                   pch=19)
 ```
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 rcorr(as.matrix(datCorr))
 ```
 
+From the last matrix, we can see that **funding_rounds**, **founded_at**, **founded_year, seed, venture, post_ipo_equity, round_A, round_B, round_C, first_funding_day, first_funding_year, last_funding_month, last_funding_year are all significantly associated with outcome variable **post_success** (p-values < 0.01).
 
 
 

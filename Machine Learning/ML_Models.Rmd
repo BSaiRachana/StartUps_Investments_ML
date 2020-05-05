@@ -222,7 +222,7 @@ legend("right", legend = c("Logit", "GBM", "KNN"), col = c("blue", "green", "red
 
 ```
 
-We used 3 algorithms, namely the randomForest , logistic regression and the gradient boosting model (GBM) to train 3 different machine learning models. The features obtained during the data preprocessing phase was used to fit the 3 different models. 
+We used 3 algorithms, namely the KNN , logistic regression and the gradient boosting model (GBM) to train 3 different machine learning models. The features obtained during the data preprocessing phase were used to fit the 3 different models. 
 
 The AUC score for each of the machine learning models were compared and the model with the maximum AUC score is considered for the given dataset.
 
