@@ -11,7 +11,7 @@ output:
 ---
 
 ```{r setup, echo=FALSE}
-knitr::opts_knit$set(root.dir = '/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/IST 5535/Projects/StartUps_Investments_ML/Dataset/' )
+knitr::opts_knit$set(root.dir = '../Dataset/' )
 ```
 
 ```{r, message=FALSE}
@@ -120,7 +120,7 @@ The dataset related to startup investments in 116 countries has been collected f
 
 
 ```{r}
-dat <- read.csv("/Users/vineethpenugonda/Documents/Academics/Masters/Semester IV/IST 5535/Projects/StartUps_Investments_ML/Dataset/US_StartUps_Investments_Data.csv", na.strings = c("", "NA"), stringsAsFactors = FALSE)
+dat <- read.csv("../Dataset/US_StartUps_Investments_Data.csv", na.strings = c("", "NA"), stringsAsFactors = FALSE)
 head(dat)
 ```
 
@@ -352,10 +352,12 @@ viz_data %>% count(founded_year)%>% arrange(-n) %>% head(25) %>%
   geom_vline(aes(xintercept = founded_year), data = viz_data %>% filter(name == "Instagram")) +
   geom_text(aes(x = founded_year, y=2000, label = "Instagram"), data = viz_data %>% filter(name == "Instagram"), size=4, vjust=-0.3, hjust=-0.3) +
   geom_vline(aes(xintercept = founded_year), data = viz_data %>% filter(name == "Uber")) +
-  geom_text(aes(x = founded_year, y=2000, label = "Uber,"), data = viz_data %>% filter(name == "Uber"), size=4, vjust=-0.3, hjust=0.6) +
+  geom_text(aes(x = founded_year, y=2000, label = "Uber,"), data = viz_data %>% filter(name == "Uber"), size=4, vjust=-0.3, hjust=0.8) +
   geom_vline(aes(xintercept = founded_year), data = viz_data %>% filter(name == "WhatsApp")) +
   geom_text(aes(x = founded_year, y=2000, label = "WhatsApp"), data = viz_data %>% filter(name == "WhatsApp"), size=4, vjust=-0.3, hjust=-0.3)
 ```
+
+For the graph we can observe that many successful companies like Facebook, Twitter, Uber, YOuTube, WhatsApp intially started as startups after 2000. Also, the number of startup companies started in a year increased significantly from 2000.
 
 ```{r}
 # State Code
@@ -365,6 +367,8 @@ dat %>% count(state_code)%>% arrange(-n) %>% head(20) %>%
   ggtitle("Number of startups in States") + xlab("States") + ylab("Count")
 ```
 
+For the graph we can observe that California (CA) state has the highest number of startups and the New York (NY) state is the second. Also, states like Massachusetts (MA), Texas (TX) and Washington (WA) have more number of startups.
+
 ```{r}
 # Top 10 market leaders
 dat %>% filter(market!="") %>% count(market)%>% arrange(-n) %>% head(10) %>%
@@ -372,6 +376,8 @@ dat %>% filter(market!="") %>% count(market)%>% arrange(-n) %>% head(10) %>%
  theme(legend.position="none") +
  ggtitle("Top 10 Market Leaders") + xlab("Markets") + ylab("Count")
 ```
+
+We can observe that many startups are in the field of software, Biotechnology, Health Care, E-Commerce.
 
 ```{r}
 # Markets
@@ -381,6 +387,8 @@ dat %>% count(market)%>% arrange(-n) %>% head(30) %>%
   ggtitle("Number of Startups in Different Markets") + xlab("Markets") + ylab("Count")
 ```
 
+We can observe that many startups are in the field of software, Biotechnology, Health Care, E-Commerce.
+
 ```{r}
 # Regions
 dat %>% count(region)%>% arrange(-n) %>% head(20) %>%
@@ -388,6 +396,8 @@ dat %>% count(region)%>% arrange(-n) %>% head(20) %>%
   theme(legend.position="none") +
   ggtitle("Number of Startups in Region") + xlab("Regions") + ylab("Count")
 ```
+
+Regions like San Francisco Bay Area, New York City, Boston, Los Angeles and Washington DC have many number of startups.
 
 ```{r}
 # Cities
@@ -397,6 +407,8 @@ dat %>% count(city)%>% arrange(-n) %>% head(30) %>%
   ggtitle("Number of Startups in Cities") + xlab("Cities") + ylab("Count")
 ```
 
+Cities like San Francisco and New York have many number of startups.
+
 ```{r}
 # No. of Startups vs Status
 dat %>% count(status)%>% arrange(-n) %>%
@@ -405,6 +417,7 @@ dat %>% count(status)%>% arrange(-n) %>%
   ggtitle("No. of Startups vs Status") + xlab("Status") + ylab("Count")
 ```
 
+We can observe that many startups established are still operating currently. Whereas, many are acquired and only few are closed which can be operating in future.
 
 ```{r}
 docs <- apply(dat['category_list'], 2, function(y) str_sub(y, 2, -2))
@@ -484,6 +497,8 @@ ggplot(data = d, aes(x=market, fill = post_success)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
+We can observe that the startups in the field of software, advertising and biotechnology have more success rate when compared to others. 
+
 ```{r}
 ggplot(data=dat, aes(x=post_success, y=venture, fill = post_success)) + 
   theme_classic() +
@@ -492,6 +507,8 @@ ggplot(data=dat, aes(x=post_success, y=venture, fill = post_success)) +
   xlab("Success") +
   ylab("Venture Capital")
 ```
+
+We can observe that successful companies are backed by Venture capital. Even top companies like facebook, youtube, google are backed by venture capital in the beginning.
 
 ```{r}
 ggplot(data = d, aes(x=market, fill = status)) + 
@@ -511,7 +528,7 @@ d1
 ```{r}
 ggplot(data = d1, aes(x=market, fill = founded_year)) + 
   theme_classic() +
-  ggtitle("Distribution of Current StartUps Status Among Top 10 Markets") + 
+  ggtitle("Distribution of StartUps Among Top 10 Markets") + 
   xlab("Market") +
   ylab("Number of Companies") + 
   geom_bar(position="dodge") + 
@@ -521,43 +538,39 @@ ggplot(data = d1, aes(x=market, fill = founded_year)) +
 ```{r}
 ggplot(data = d1, aes(x=founded_year, fill = market)) + 
   theme_classic() +
-  ggtitle("Distribution of Current StartUps Status Among Top 10 Markets") + 
-  xlab("Market") +
+  ggtitle("Distribution of StartUps Success Among Top 10 Markets") + 
+  xlab("Founded Year") +
   ylab("Number of Companies") + 
   geom_bar(position="dodge") + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+We can observe that more number of successful startups are in the field of software and biotechnology
 
 ```{r}
 ggplot(data = d1, aes(x=founded_year, fill = post_success)) + 
   theme_classic() +
-  ggtitle("Distribution of Current StartUps Status Among Top 10 Markets") + 
-  xlab("Market") +
+  ggtitle("Distribution of Success Among Startups Founded after 2000") + 
+  xlab("Founded Year") +
   ylab("Number of Companies") + 
   geom_bar(position="dodge") + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-```{r}
-ggplot(data = d1, aes(x=founded_year, fill = status)) + 
-  theme_classic() +
-  ggtitle("Distribution of Current StartUps Status Among Top 10 Markets") + 
-  xlab("Market") +
-  ylab("Number of Companies") + 
-  geom_bar(position="dodge") + 
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
+We can observe that the statups started have good success rate till 2007 after which the success rate was reduced but after 2010 again it increased.
 
 ```{r}
 d2 = subset(dat, dat$founded_year == 2000:2014)
 ggplot(data = d2, aes(x=founded_year, fill = status)) + 
   theme_classic() +
-  ggtitle("Distribution of Current StartUps Status Among Top 10 Markets") + 
-  xlab("Market") +
+  ggtitle("Distribution of Current StartUps Status Among Founded Year") + 
+  xlab("Founded Year") +
   ylab("Number of Companies") + 
   geom_bar(position="dodge") + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+We can observe that every year few success companies are acquired, whereas as few are closed and the remaining stay operated.
 
 # Correlation Analysis
 
