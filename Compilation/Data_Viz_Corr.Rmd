@@ -27,6 +27,10 @@ library("SnowballC")
 library("wordcloud")
 library("RColorBrewer")
 library(stringr)
+
+# Correlation Analysis
+library("PerformanceAnalytics")
+library(Hmisc)
 ```
 
 # Data Preprocessing
@@ -38,41 +42,75 @@ The dataset related to startup investments in 116 countries has been collected f
 
 ### Key Information In The Dataset
 
-**name**: Name of the startup company                 
-**category_list**: Category the startup belongs to     
-**market**: Type of market the startup belongs to              
+**name**: Name of the startup company     
+
+**category_list**: Category the startup belongs to  
+
+**market**: Type of market the startup belongs to         
+
 **funding_total_usd**: Total funding the startup received
-**status**: Status of the startup – acquired, operational, closed       
-**state_code**: State in which the startup was founded in            
-**region**:  Region in which the startup was founded in            
-**city**: City in which the startup was founded in                      
-**funding_rounds**: Number of funding rounds the startup went through     
+
+**status**: Status of the startup – acquired, operational, closed  
+
+**state_code**: State in which the startup was founded in
+
+**region**:  Region in which the startup was founded in      
+
+**city**: City in which the startup was founded in              
+
+**funding_rounds**: Number of funding rounds the startup went through  
+
 **founded_at**: Day on which the startup was founded    
+
 **founded_month**: Month in which the startup was founded         
+
 **founded_quarter**: Quarter in which the startup was founded – Q1, Q2, Q3, Q4
+
 **founded_year**: Year in which the startup was founded    
-**first_funding_day**: Day on which the startup started receiving funding     
-**first_funding_month**: Month in which the startup started receiving funding     
-**first_funding_year**:  Year in which the startup started receiving funding     
-**last_funding_day**: Day on which the startup stopped receiving funding       
-**last_funding_month**: Month in which the startup stopped receiving funding        
-**last_funding_year**: Year in which the startup stopped receiving funding               
-**seed**: Seed rounds are among the first rounds of funding a company will receive, generally while the company is young and working to gain traction. A seed round typically comes after an angel round (if applicable) and before a company’s Series A round.            
+
+**first_funding_day**: Day on which the startup started receiving funding    
+
+**first_funding_month**: Month in which the startup started receiving funding 
+
+**first_funding_year**:  Year in which the startup started receiving funding   
+
+**last_funding_day**: Day on which the startup stopped receiving funding     
+
+**last_funding_month**: Month in which the startup stopped receiving funding  
+
+**last_funding_year**: Year in which the startup stopped receiving funding        
+
+**seed**: Seed rounds are among the first rounds of funding a company will receive, generally while the company is young and working to gain traction. A seed round typically comes after an angel round (if applicable) and before a company’s Series A round.   
+
 **venture**: Venture funding refers to an investment that comes from a venture capital firm and describes Series A, Series B, and later rounds. This funding type is used for any funding round that is clearly a venture round but where the series has not been specified.   
+
 **equity_crowdfunding**: Equity crowdfunding platforms allow individual users to invest in companies in exchange for equity. Typically, on these platforms the investors invest small amounts of money, though syndicates are formed to allow an individual to take a lead on evaluating an investment and pooling funding from a group of individual investors.
-**undisclosed**: Undisclosed amount on the last funding date.         
-**convertible_note**: A convertible note is an ‘in-between’ round funding to help companies hold over until they want to raise their next round of funding. When they raise the next round, this note ‘converts’ with a discount at the price of the new round. You will typically see convertible notes after a company raises, for example, a Series A round but does not yet want to raise a Series B round.    
-**debt_financing**: In a debt round, an investor lends money to a company, and the company promises to repay the debt with added interest.    
-**angel**:  An angel round is typically a small round designed to get a new company off the ground. Investors in an angel round include individual angel investors, angel investor groups, friends, and family.           
+
+**undisclosed**: Undisclosed amount on the last funding date.   
+
+**convertible_note**: A convertible note is an ‘in-between’ round funding to help companies hold over until they want to raise their next round of funding. When they raise the next round, this note ‘converts’ with a discount at the price of the new round. You will typically see convertible notes after a company raises, for example, a Series A round but does not yet want to raise a Series B round. 
+
+**debt_financing**: In a debt round, an investor lends money to a company, and the company promises to repay the debt with added interest.
+
+**angel**:  An angel round is typically a small round designed to get a new company off the ground. Investors in an angel round include individual angel investors, angel investor groups, friends, and family.  
+
 **grant**: A grant is when a company, investor, or government agency provides capital to a company without taking an equity stake in the company.  
 **private_equity**: A private equity round is led by a private equity firm or a hedge fund and is a late stage round. It is a less risky investment because the company is more firmly established, and the rounds are typically upwards of $50M.
-**post_ipo_equity**: A post-IPO equity round takes place when firms invest in a company after the company has already gone public.    
+
+**post_ipo_equity**: A post-IPO equity round takes place when firms invest in a company after the company has already gone public. 
+
 **post_ipo_debt**: A post-IPO debt round takes place when firms loan a company money after the company has already gone public. Similar to debt financing, a company will promise to repay the principal as well as added interest on the debt.
-**secondary_market**: A secondary market transaction is a fundraising event in which one investor purchases shares of stock in a company from other, existing shareholders rather than from the company directly. These transactions often occur when a private company becomes highly valuable and early stage investors or employees want to earn a profit on their investment, and these transactions are rarely announced or publicized.    
+
+**secondary_market**: A secondary market transaction is a fundraising event in which one investor purchases shares of stock in a company from other, existing shareholders rather than from the company directly. These transactions often occur when a private company becomes highly valuable and early stage investors or employees want to earn a profit on their investment, and these transactions are rarely announced or publicized.
+
 **product_crowdfunding**: In a product crowdfunding round, a company will provide its product, which is often still in development, in exchange for capital. This kind of round is also typically completed on a funding platform.
-**round_A**: Round A is a funding round for earlier stage companies and range on average between $1M–$30M.          
-**round_B**: Round B is a funding round for earlier stage companies and range on average between $1M–$30M.                      
+
+**round_A**: Round A is a funding round for earlier stage companies and range on average between $1M–$30M.
+
+**round_B**: Round B is a funding round for earlier stage companies and range on average between $1M–$30M.  
+
 **round_C**: Round C is a funding round for later stage and more established companies. These rounds are usually $10M+ and are often much larger.
+
 **round_D**: Round D is a funding round for later stage and more established companies. These rounds are usually $10M+ and are often much larger.          
 **round_E**: Round E is a funding round for later stage and more established companies. These rounds are usually $10M+ and are often much larger.              
 **round_F**: Round F is a funding round for later stage and more established companies. These rounds are usually $10M+ and are often much larger.           
@@ -367,7 +405,6 @@ dat %>% count(status)%>% arrange(-n) %>%
   ggtitle("No. of Startups vs Status") + xlab("Status") + ylab("Count")
 ```
 
-### ADV VIZ - REMOVE TITLE LATER
 
 ```{r}
 docs <- apply(dat['category_list'], 2, function(y) str_sub(y, 2, -2))
@@ -429,16 +466,6 @@ barplot(d[1:10,]$freq, las = 2, names.arg = d[1:10,]$word,
 dat %>%
   group_by(post_success) %>%
   top_n(10, market)
-```
-
-```{r}
-by_origin_monthly_incorrect <- dat %>% 
-  group_by(post_success) %>% 
-  group_by(market) %>% 
-  summarize(count = n()) %>%
-  arrange(desc(count)) %>%
-  top_n(10)
-by_origin_monthly_incorrect
 ```
 
 ```{r}
@@ -531,6 +558,39 @@ ggplot(data = d2, aes(x=founded_year, fill = status)) +
   geom_bar(position="dodge") + 
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+# Correlation Analysis
+
+```{r}
+datCorr <- dat
+datCorr$name <- NULL
+datCorr$category_list <- NULL
+datCorr$market <- NULL
+datCorr$status <- NULL
+datCorr$state_code <- NULL
+datCorr$region <- NULL
+datCorr$city <- NULL
+datCorr$founded_quarter <- NULL
+datCorr$post_success <- as.numeric(as.character(datCorr$post_success))
+
+str(datCorr)
+```
+
+We removed columns which are of type "character".
+
+```{r}
+chart.Correlation(datCorr, 
+                  histogram=TRUE, 
+                  method = 'pearson',
+                  pch=19)
+```
+
+```{r}
+rcorr(as.matrix(datCorr))
+```
+
+
+
 
 
 
