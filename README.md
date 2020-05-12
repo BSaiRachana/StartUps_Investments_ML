@@ -4,7 +4,8 @@
 
 [Definitions](https://support.crunchbase.com/hc/en-us/articles/115010458467-Glossary-of-Funding-Types)
 
-[Source 1](https://www.kaggle.com/yashgoyal401/startups-data-analysis-by-using-plots)
+# Visualizations
+
 - [ ] Heatmap
 - [X] Number of startups founded vs founded_year
 - [X] Number of startups vs state code
@@ -19,8 +20,6 @@
 - [ ] Comapanies status whose fundings are more than 1 Billion US$ vs status (pie)
 - [ ] top 32 Highest funded companies vs funding_total_usd
 - [ ] Founded year of top funded companies vs founded_year
-
-[Source 2](https://www.kaggle.com/omarismail/startup-investments-in-nordic-countries)
 
 - [ ] When were the well-known companies founded?
 - [ ] Venture/Seed for each company (also by region or famous companies works) (bar)
