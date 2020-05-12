@@ -1,15 +1,16 @@
 ---
 title: "Startup Investments - Predictive Analysis"
-subtitle: <h3>Predicting the success of the startup companies using Machine Learning</h3></br>
-author: 
-- "Group 6"
-- "Vineeth Penugonda, Sai Rachana Bandi, Chandra Vardhan"
+author:
+- Group 6
+- Vineeth Penugonda, Sai Rachana Bandi, Chandra Vardhan
 date: "</br>`r format(Sys.time(), '%d %B %Y')`"
 output:
+  word_document: default
   html_document:
     df_print: paged
+subtitle: <h3>Predicting the success of the startup companies using Machine Learning</h3></br>
 ---
-```{r}
+```{r, warning=FALSE, message=FALSE}
 library(caret)
 library(doParallel)
 library(pROC)
@@ -71,7 +72,7 @@ logit_fit <- train(post_success ~ ., data = trainData,
 ```
 
 ```{r}
-plot(logit_fit)
+print(logit_fit)
 ```
 
 ```{r}
@@ -95,6 +96,16 @@ gbm_fit <- train(post_success ~ ., data = trainData,
                  verbose=TRUE)
 
 
+```
+
+```{r}	
+# Plot resampling profile by accuracy	
+plot(gbm_fit)	
+```	
+
+```{r}	
+# Plot resampling profile by kappa statistic	
+plot(gbm_fit, metric = "Kappa")	
 ```
 
 ```{r}
@@ -221,6 +232,8 @@ plot(knn_fit_roc, col = "red", xaxt = "n", yaxt = "n")
 legend("right", legend = c("Logit", "GBM", "KNN"), col = c("blue", "green", "red"), lty = 1)
 
 ```
+
+# RESULTS
 
 We used 3 algorithms, namely the KNN , logistic regression and the gradient boosting model (GBM) to train 3 different machine learning models. The features obtained during the data preprocessing phase were used to fit the 3 different models. 
 

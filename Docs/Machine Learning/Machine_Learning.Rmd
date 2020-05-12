@@ -1,0 +1,250 @@
+---
+title: "Startup Investments - Predictive Analysis"
+author:
+- Group 6
+- Vineeth Penugonda, Sai Rachana Bandi, Chandra Vardhan
+date: "</br>`r format(Sys.time(), '%d %B %Y')`"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+subtitle: <h3>Predicting the success of the startup companies using Machine Learning</h3></br>
+---
+```{r, warning=FALSE, message=FALSE}
+library(caret)
+library(doParallel)
+library(pROC)
+```
+
+```{r}
+#memory.limit(24000)
+memory.limit(10 * 10^10)
+```
+
+# Parallelization
+We paralleled the operations for faster results. 
+
+```{r}
+cl <- makeCluster(detectCores())
+registerDoParallel(cl)
+```
+
+
+```{r}
+#dat <- readRDS("../Dataset/Data_Cleansed.rds")
+dat <- readRDS("../Dataset/Data_CE_Filtered.rds")
+datCopy <- dat
+#datCopy$name <- NULL
+```
+
+# Splitting Data
+
+We split the data into train data and test data. We split the data into 70% train data and 30% test data.
+
+```{r}
+# post_success
+'%ni%' <- Negate('%in%')  # define 'not in' func
+options(scipen=999)  # prevents printing scientific notations.
+
+# Prep Training and Test data.
+set.seed(100)
+trainDataIndex <- createDataPartition(datCopy$post_success, p=0.7, list = F)  # 70% training data
+trainData <- datCopy[trainDataIndex, ]
+testData <- datCopy[-trainDataIndex, ]
+table(trainData$post_success)
+```
+
+# Logistic Regression
+
+```{r}
+# Run algorithms using 10-fold cross validation
+fitControl <- trainControl(method="cv", number= 10, allowParallel = TRUE, verboseIter = TRUE)
+```
+
+
+```{r}
+## Train a logistic regression model with 10-fold cross-validation
+set.seed(100)
+logit_fit <- train(post_success ~ ., data = trainData,
+                   trControl = fitControl,
+                   method="glm", family=binomial(link='logit'))
+
+```
+
+```{r}
+print(logit_fit)
+```
+
+```{r}
+# In-sample performance
+confusionMatrix(logit_fit)
+```
+
+```{r}
+# Out-of-sample performance
+confusionMatrix(predict(logit_fit, newdata = testData),
+                testData$post_success, positive = '1')
+```
+
+# Gradient Boosting Machine
+
+```{r}
+## Train a GBM model with 10-fold cross-validation
+set.seed(100)
+gbm_fit <- train(post_success ~ ., data = trainData,
+                 trControl = fitControl, method = "gbm",
+                 verbose=TRUE)
+
+
+```
+
+```{r}	
+# Plot resampling profile by accuracy	
+plot(gbm_fit)	
+```	
+
+```{r}	
+# Plot resampling profile by kappa statistic	
+plot(gbm_fit, metric = "Kappa")	
+```
+
+```{r}
+# In-sample performance
+confusionMatrix(gbm_fit)
+
+```
+
+```{r}
+# Out-of-sample performance
+confusionMatrix(predict(gbm_fit, newdata = testData),
+                testData$post_success, positive = '1')
+```
+
+# KNN
+
+```{r}
+## Train a KNN model with 10-fold cross-validation
+set.seed(100)
+knn_fit <- train(post_success ~ ., data = trainData, method="knn", trControl=fitControl)
+```
+
+```{r}
+# In-sample performance
+confusionMatrix(knn_fit)
+
+```
+
+```{r}
+# Plot accuracy across different n values
+plot(knn_fit)
+```
+
+```{r}
+# Out-of-sample performance
+confusionMatrix(predict(knn_fit, newdata = testData),
+                testData$post_success, positive = '1')
+```
+
+# Comparing the models using performance metrics
+
+```{r}
+resamps <- resamples(list(Logit=logit_fit, GBM=gbm_fit, KNN=knn_fit))
+
+# Summarize the resamples
+summary(resamps)
+```
+
+```{r}
+# Boxplots of resamples
+bwplot(resamps)
+```
+
+```{r}
+# Dot plots of resamples
+dotplot(resamps)
+```
+
+```{r}
+difValues <- diff(resamps)
+
+summary(difValues)
+```
+
+```{r}
+#bwplot(difValues, layout = c(3, 1))
+dotplot(difValues)
+```
+
+
+```{r}
+accu <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_success)$overall['Accuracy'],
+          confusionMatrix(predict(gbm_fit, newdata=testData),testData$post_success)$overall['Accuracy'],
+          confusionMatrix(predict(knn_fit, newdata=testData),testData$post_success)$overall['Accuracy'])
+
+kappa <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_success)$overall['Kappa'],
+          confusionMatrix(predict(gbm_fit, newdata=testData),testData$post_success)$overall['Kappa'],
+          confusionMatrix(predict(knn_fit, newdata=testData),testData$post_success)$overall['Kappa'])
+
+sensi <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_success,positive='1')$byClass['Sensitivity'],
+           confusionMatrix(predict(gbm_fit, newdata=testData),testData$post_success,positive='1')$byClass['Sensitivity'],
+           confusionMatrix(predict(knn_fit, newdata=testData),testData$post_success,positive='1')$byClass['Sensitivity'])
+
+speci <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_success,positive='1')$byClass['Specificity'],
+           confusionMatrix(predict(gbm_fit, newdata=testData),testData$post_success,positive='1')$byClass['Specificity'],
+           confusionMatrix(predict(knn_fit, newdata=testData),testData$post_success,positive='1')$byClass['Specificity'])
+
+preci <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_success,positive='1')$byClass['Precision'],
+           confusionMatrix(predict(gbm_fit, newdata=testData),testData$post_success,positive='1')$byClass['Precision'],
+           confusionMatrix(predict(knn_fit, newdata=testData),testData$post_success,positive='1')$byClass['Precision'])
+
+f1 <- c(confusionMatrix(predict(logit_fit, newdata=testData),testData$post_success,positive='1')$byClass['F1'],
+           confusionMatrix(predict(gbm_fit, newdata=testData),testData$post_success,positive='1')$byClass['F1'],
+           confusionMatrix(predict(knn_fit, newdata=testData),testData$post_success,positive='1')$byClass['F1'])
+
+auc <- c(roc(testData$post_success, as.numeric(predict(logit_fit, newdata=testData)))$auc,
+         roc(testData$post_success, as.numeric(predict(gbm_fit, newdata=testData)))$auc,
+         roc(testData$post_success, as.numeric(predict(knn_fit, newdata=testData)))$auc)
+
+data.frame(Accuracy = round(accu,3),
+           Kappa = round(kappa,3),
+           Precision = round(preci,3),
+           Recall = round(sensi,3), 
+           Specificity = round(speci,3),
+           F1 = round(f1,3),
+           AUC = round(auc,3),
+           Balanced.Accuracy = round((sensi + speci)/2,3),
+           row.names = c('Logit','GBM','KNN'))
+```
+
+```{r}
+logit_fit_roc <- roc(testData$post_success, as.numeric(predict(logit_fit, newdata=testData)))
+gbm_fit_roc <- roc(testData$post_success, as.numeric(predict(gbm_fit, newdata=testData)))
+knn_fit_roc <- roc(testData$post_success, as.numeric(predict(knn_fit, newdata=testData)))
+```
+
+```{r}
+plot(logit_fit_roc, col = "blue")
+par(new = TRUE)
+plot(gbm_fit_roc, col = "green", xaxt = "n", yaxt = "n")
+par(new = TRUE)
+plot(knn_fit_roc, col = "red", xaxt = "n", yaxt = "n")
+
+legend("right", legend = c("Logit", "GBM", "KNN"), col = c("blue", "green", "red"), lty = 1)
+
+```
+
+# RESULTS
+
+We used 3 algorithms, namely the KNN , logistic regression and the gradient boosting model (GBM) to train 3 different machine learning models. The features obtained during the data preprocessing phase were used to fit the 3 different models. 
+
+The AUC score for each of the machine learning models were compared and the model with the maximum AUC score is considered for the given dataset.
+
+Based on AUC score, we can observe that our best model is Gradient Boosting Machine (GBM). Logistic Regression (GLM) is the second best model. 
+
+```{r}
+stopCluster(cl)
+```
+
+
+
+

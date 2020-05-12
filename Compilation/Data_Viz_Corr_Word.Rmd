@@ -1,0 +1,615 @@
+---
+title: "Startup Investments"
+author:
+- Group 6
+- Vineeth Penugonda, Sai Rachana Bandi, Chandra Vardhan
+date: "</br>`r format(Sys.time(), '%d %B %Y')`"
+output:
+  word_document: default
+  html_document:
+    df_print: paged
+subtitle: <h3>Predicting the success of the startup companies using Machine Learning</h3></br>
+---
+
+```{r setup, echo=FALSE}
+knitr::opts_knit$set(root.dir = '../Dataset/' )
+```
+
+```{r, message=FALSE}
+# All Libraries
+library(lubridate) # Date
+library(binaryLogic) # Binary Encoding
+
+# Visualizations
+library(dplyr) 
+library(ggplot2) 
+library("tm")
+library("SnowballC")
+library("wordcloud")
+library("RColorBrewer")
+library(stringr)
+
+# Correlation Analysis
+library("PerformanceAnalytics")
+library(Hmisc)
+```
+
+# Data Preprocessing
+
+The dataset was downloaded from the following kaggle link:
+https://www.kaggle.com/arindam235/startup-investments-crunchbase
+
+The dataset related to startup investments in 116 countries has been collected from the CrunchBase database. We considered only the startup companies based in USA. The factors we considered - the type of market, the state, the region the startup belongs to, total funding (in USD), different types of funding – seed, angel, crowdfunding etc., founded date, last funding date, operating status. 
+
+### Key Information In The Dataset
+
+**name**: Name of the startup company     
+
+**category_list**: Category the startup belongs to  
+
+**market**: Type of market the startup belongs to         
+
+**funding_total_usd**: Total funding the startup received
+
+**status**: Status of the startup – acquired, operational, closed  
+
+**state_code**: State in which the startup was founded in
+
+**region**:  Region in which the startup was founded in      
+
+**city**: City in which the startup was founded in              
+
+**funding_rounds**: Number of funding rounds the startup went through  
+
+**founded_at**: Day on which the startup was founded    
+
+**founded_month**: Month in which the startup was founded         
+
+**founded_quarter**: Quarter in which the startup was founded – Q1, Q2, Q3, Q4
+
+**founded_year**: Year in which the startup was founded    
+
+**first_funding_day**: Day on which the startup started receiving funding    
+
+**first_funding_month**: Month in which the startup started receiving funding 
+
+**first_funding_year**:  Year in which the startup started receiving funding   
+
+**last_funding_day**: Day on which the startup stopped receiving funding     
+
+**last_funding_month**: Month in which the startup stopped receiving funding  
+
+**last_funding_year**: Year in which the startup stopped receiving funding        
+
+**seed**: Seed rounds are among the first rounds of funding a company will receive, generally while the company is young and working to gain traction. A seed round typically comes after an angel round (if applicable) and before a company’s Series A round.   
+
+**venture**: Venture funding refers to an investment that comes from a venture capital firm and describes Series A, Series B, and later rounds. This funding type is used for any funding round that is clearly a venture round but where the series has not been specified.   
+
+**equity_crowdfunding**: Equity crowdfunding platforms allow individual users to invest in companies in exchange for equity. Typically, on these platforms the investors invest small amounts of money, though syndicates are formed to allow an individual to take a lead on evaluating an investment and pooling funding from a group of individual investors.
+
+**undisclosed**: Undisclosed amount on the last funding date.   
+
+**convertible_note**: A convertible note is an ‘in-between’ round funding to help companies hold over until they want to raise their next round of funding. When they raise the next round, this note ‘converts’ with a discount at the price of the new round. You will typically see convertible notes after a company raises, for example, a Series A round but does not yet want to raise a Series B round. 
+
+**debt_financing**: In a debt round, an investor lends money to a company, and the company promises to repay the debt with added interest.
+
+**angel**:  An angel round is typically a small round designed to get a new company off the ground. Investors in an angel round include individual angel investors, angel investor groups, friends, and family.  
+
+**grant**: A grant is when a company, investor, or government agency provides capital to a company without taking an equity stake in the company.  
+**private_equity**: A private equity round is led by a private equity firm or a hedge fund and is a late stage round. It is a less risky investment because the company is more firmly established, and the rounds are typically upwards of $50M.
+
+**post_ipo_equity**: A post-IPO equity round takes place when firms invest in a company after the company has already gone public. 
+
+**post_ipo_debt**: A post-IPO debt round takes place when firms loan a company money after the company has already gone public. Similar to debt financing, a company will promise to repay the principal as well as added interest on the debt.
+
+**secondary_market**: A secondary market transaction is a fundraising event in which one investor purchases shares of stock in a company from other, existing shareholders rather than from the company directly. These transactions often occur when a private company becomes highly valuable and early stage investors or employees want to earn a profit on their investment, and these transactions are rarely announced or publicized.
+
+**product_crowdfunding**: In a product crowdfunding round, a company will provide its product, which is often still in development, in exchange for capital. This kind of round is also typically completed on a funding platform.
+
+**round_A**: Round A is a funding round for earlier stage companies and range on average between $1M–$30M.
+
+**round_B**: Round B is a funding round for earlier stage companies and range on average between $1M–$30M.  
+
+**round_C**: Round C is a funding round for later stage and more established companies. These rounds are usually $10M+ and are often much larger.
+
+**round_D**: Round D is a funding round for later stage and more established companies. These rounds are usually $10M+ and are often much larger.          
+**round_E**: Round E is a funding round for later stage and more established companies. These rounds are usually $10M+ and are often much larger.              
+**round_F**: Round F is a funding round for later stage and more established companies. These rounds are usually $10M+ and are often much larger.           
+**round_G**: Round G is a funding round for later stage and more established companies. These rounds are usually $10M+ and are often much larger.             
+**round_H**: Round H is a funding round for later stage and more established companies. These rounds are usually $10M+ and are often much larger.            
+**post_success**: Indicates if the startup was successful or not successful based on the rules mentioned above.
+
+
+```{r}
+dat <- read.csv("../Dataset/US_StartUps_Investments_Data.csv", na.strings = c("", "NA"), stringsAsFactors = FALSE)
+head(dat)
+```
+
+On initial observation, the dataset downloaded from Kaggle had a lot of missing data. So, we removed rows which had missing data in one or more columns. 
+
+```{r, warning=FALSE}
+# Replacing commas in the column - funding_total_usd
+dat$funding_total_usd <- as.numeric(gsub(",","",dat$funding_total_usd))
+```
+
+The values in the column “funding_total_usd” had commas. We removed commas for the values. 
+
+```{r}
+# Remove rows with NAs
+dat <- dat[complete.cases(dat),]
+```
+
+```{r}
+# Remove trailing spaces in column - market
+dat$market <- trimws(dat$market, which = c("both"))
+```
+
+The **market** column had left and right trailing spaces for each keyword. So, we trimmed it using trimws() function.
+
+```{r}
+# Remove country_code, homepage_URL, X and permalink
+dat$homepage_url <- NULL
+dat$X <- NULL
+dat$permalink <- NULL
+dat$country_code <- NULL
+```
+
+We didn't require **homepage URL of the startup company**, **X which is the ID**, **permalink - permanent link in the crunchbase**, **country code**. We are considering only startups in United States of America (USA).
+
+```{r}
+# Strip values in columns
+# Month
+dat$founded_month = substring(dat$founded_month,6)
+dat$founded_month = as.numeric(dat$founded_month)
+
+# Quarter
+dat$founded_quarter = substring(dat$founded_quarter,6)
+
+# YY/MM/DD. We only need the day.
+dat$founded_at = substring(dat$founded_at,9)
+dat$founded_at = as.numeric(dat$founded_at)
+```
+
+We observed that the values in the **founded_month** column were in **Year-Month**. Since we needed only the month we removed the year from those values. It was a similar case for **founded_quarter** column. 
+
+**founded_at** is the day in the YY/MM/DD format. So we removed year and month information from the values to just get the day(dd) information.
+
+```{r}
+# Date DataType
+dat$first_funding_at <- as.Date(dat$first_funding_at)
+dat$last_funding_at <- as.Date(dat$last_funding_at)
+```
+
+```{r}
+# Separate date into three columns
+dat$first_funding_day <- day(ymd(dat$first_funding_at))
+dat$first_funding_month <- month(ymd(dat$first_funding_at)) 
+dat$first_funding_year <- year(ymd(dat$first_funding_at))
+
+dat$last_funding_day <- day(ymd(dat$last_funding_at))
+dat$last_funding_month <- month(ymd(dat$last_funding_at)) 
+dat$last_funding_year <- year(ymd(dat$last_funding_at))
+
+# Remove Funding Dates
+dat$first_funding_at <- NULL
+dat$last_funding_at <- NULL
+```
+
+**first_funding_at** and **last_funding_at** are in YY/MM/DD format. We split the dates into three columns - **first_funding_day** (DD), **first_funding_month** (MM),**first_funding_year** (YY).
+
+```{r}
+# Create new column: Success or not Success
+# Acquired, post_ipo_equity or post_ipo_equity and Acquired
+
+dat$post_success <- ifelse(dat$status=="acquired", 1,
+               ifelse(dat$post_ipo_equity > 0, 1,
+                      ifelse((dat$status=="acquired") && (dat$post_ipo_equity > 0), 1,
+                                    0  ))) # all other values map to 0
+
+dat$post_success <- factor(dat$post_success)
+```
+
+Both an IPO (Initial Public Offering) and a process of M&A (Mergers & Acquisitions) are the critical events that classify a start-up as successful.
+
+We created the “post_success” column which indicates if the startup was successful or not successful based on these rules – if the status of the company is “acquired” or if the post IPO equity is greater than 0 or if the status of the company is “acquired” and the post IPO equity is greater than 0.
+
+```{r}
+str(dat)
+```
+
+```{r}
+# Saving file
+write.csv(dat,'Data_Cleansed.csv')
+saveRDS(dat, file = "Data_Cleansed.rds")
+```
+
+### Binary Encoding
+
+There are more than 32 markets, regions and states. We binary encoded the values in *market*, *region*, *state_code*. Then, digits from that binary string are split into separate columns. This is useful for machine learning. Better encoding of categorical data can mean better model performance. 
+
+```{r}
+# Function for Binary Encoding
+
+encode_binary <- function(x, order = unique(x), name = "v_") {
+  x <- as.numeric(factor(x, levels = order, exclude = NULL))
+  x2 <- as.binary(x)
+  maxlen <- max(sapply(x2, length))
+  x2 <- lapply(x2, function(y) {
+    l <- length(y)
+    if (l < maxlen) {
+      y <- c(rep(0, (maxlen - l)), y)
+    }
+    y
+  })
+  d <- as.data.frame(t(as.data.frame(x2)))
+  rownames(d) <- NULL
+  colnames(d) <- paste0(name, 1:maxlen)
+  d
+}
+```
+
+```{r}
+# dat -> Visualizations
+# filter_data -> ML
+
+new_df <- cbind(dat, encode_binary(dat[["market"]], name = "market_"))
+
+new_df <- cbind(new_df, encode_binary(dat[["region"]], name = "region_"))
+
+new_df <- cbind(new_df, encode_binary(dat[["state_code"]], name = "state_code_"))
+
+saveRDS(new_df, file = "Data_Cleansed_Encoded.rds")
+```
+
+### Filtering and Factorizing
+
+We selected data from year 1990 until 2014. We converted all the categorical variables to factors. We also converted the data types from "num" to "logical" (boolean) for the binary encoded columns. 
+
+```{r}
+# Filter the data and Factorize it!
+
+filter_data <- new_df[ which(new_df$founded_year >= 1990), ]
+
+# Datatypes
+# Categorical Variables:  name, category_list, market, status, state_code, region, city, founded_at, founded_month, founded_quarter,
+#                         founded_year, first_funding_day, first_funding_month, first_funding_year, last_funding_day, last_funding_month,
+#                         last_funding_year
+
+filter_data$name <- NULL
+filter_data$category_list<- NULL
+filter_data$market<- NULL
+
+filter_data$status<-factor(filter_data$status)
+
+filter_data$state_code<- NULL
+filter_data$region<- NULL
+filter_data$city<- NULL
+
+filter_data$founded_at<-factor(filter_data$founded_at)
+filter_data$founded_month<-factor(filter_data$founded_month)
+filter_data$founded_quarter<-factor(filter_data$founded_quarter)
+filter_data$founded_year<-factor(filter_data$founded_year)
+filter_data$first_funding_day<-factor(filter_data$first_funding_day)
+filter_data$first_funding_month<-factor(filter_data$first_funding_month)
+filter_data$first_funding_year<-factor(filter_data$first_funding_year)
+filter_data$last_funding_day<-factor(filter_data$last_funding_day)
+filter_data$last_funding_month<-factor(filter_data$last_funding_month)
+filter_data$last_funding_year<-factor(filter_data$last_funding_year)
+
+filter_data$market_1 <- as.logical(filter_data$market_1)
+filter_data$market_2 <- as.logical(filter_data$market_2)
+filter_data$market_3 <- as.logical(filter_data$market_3)
+filter_data$market_4 <- as.logical(filter_data$market_4)
+filter_data$market_5 <- as.logical(filter_data$market_5)
+filter_data$market_6 <- as.logical(filter_data$market_6)
+filter_data$market_7 <- as.logical(filter_data$market_7)
+filter_data$market_8 <- as.logical(filter_data$market_8)
+filter_data$market_9 <- as.logical(filter_data$market_9)
+filter_data$market_10 <- as.logical(filter_data$market_10)
+
+filter_data$region_1 <- as.logical(filter_data$region_1)
+filter_data$region_2 <- as.logical(filter_data$region_2)
+filter_data$region_3 <- as.logical(filter_data$region_3)
+filter_data$region_4 <- as.logical(filter_data$region_4)
+filter_data$region_5 <- as.logical(filter_data$region_5)
+filter_data$region_6 <- as.logical(filter_data$region_6)
+filter_data$region_7 <- as.logical(filter_data$region_7)
+filter_data$region_8 <- as.logical(filter_data$region_8)
+
+filter_data$state_code_1 <- as.logical(filter_data$state_code_1)
+filter_data$state_code_2 <- as.logical(filter_data$state_code_2)
+filter_data$state_code_3 <- as.logical(filter_data$state_code_3)
+filter_data$state_code_4 <- as.logical(filter_data$state_code_4)
+filter_data$state_code_5 <- as.logical(filter_data$state_code_5)
+filter_data$state_code_6 <- as.logical(filter_data$state_code_6)
+
+saveRDS(filter_data, file="Data_CE_Filtered.rds")
+
+str(filter_data)
+```
+
+Finally, we have no null values in the dataset!
+We changed the data type of each column for further analysis.
+
+# Visualizations
+
+```{r}
+# Founding year
+viz_data <- dat
+viz_data$founded_year <- factor(viz_data$founded_year)
+
+viz_data %>% count(founded_year)%>% arrange(-n) %>% head(25) %>%
+  ggplot(aes(reorder(founded_year, n), n)) + geom_col(aes(fill=founded_year)) + coord_flip() +
+  theme(legend.position="none") +
+  ggtitle("Year Founded") + xlab("Year") + ylab("Count") +
+  geom_vline(aes(xintercept = founded_year), data = viz_data %>% filter(name == "Facebook")) +
+  geom_text(aes(x = founded_year, y=2000, label = "Facebook"), data = viz_data %>% filter(name == "Facebook"), size=4, vjust=-0.3, hjust=-0.3) +
+  geom_vline(aes(xintercept = founded_year), data = viz_data %>% filter(name == "Twitter")) +
+  geom_text(aes(x = founded_year, y=2000, label = "Twitter"), data = viz_data %>% filter(name == "Twitter"), size=4, vjust=-0.3, hjust=-0.3) +
+  geom_vline(aes(xintercept = founded_year), data = viz_data %>% filter(name == "Google")) +
+  geom_text(aes(x = founded_year, y=2000, label = "Google"), data = viz_data %>% filter(name == "Google"), size=4, vjust=-0.3, hjust=-0.3) +
+  geom_vline(aes(xintercept = founded_year), data = viz_data %>% filter(name == "YouTube")) +
+  geom_text(aes(x = founded_year, y=2000, label = "YouTube"), data = viz_data %>% filter(name == "YouTube"), size=4, vjust=-0.3, hjust=-0.3) +
+  geom_vline(aes(xintercept = founded_year), data = viz_data %>% filter(name == "Instagram")) +
+  geom_text(aes(x = founded_year, y=2000, label = "Instagram"), data = viz_data %>% filter(name == "Instagram"), size=4, vjust=-0.3, hjust=-0.3) +
+  geom_vline(aes(xintercept = founded_year), data = viz_data %>% filter(name == "Uber")) +
+  geom_text(aes(x = founded_year, y=2000, label = "Uber,"), data = viz_data %>% filter(name == "Uber"), size=4, vjust=-0.3, hjust=0.8) +
+  geom_vline(aes(xintercept = founded_year), data = viz_data %>% filter(name == "WhatsApp")) +
+  geom_text(aes(x = founded_year, y=2000, label = "WhatsApp"), data = viz_data %>% filter(name == "WhatsApp"), size=4, vjust=-0.3, hjust=-0.3)
+```
+
+From the graph, we can observe that many successful companies like Facebook, Twitter, Uber, YouTube, WhatsApp intially started as startups after the year 2000. Also, the number of startup companies started in a year increased significantly from the year 2000.
+
+```{r}
+# State Code
+dat %>% count(state_code)%>% arrange(-n) %>% head(20) %>%
+  ggplot(aes(reorder(state_code, n), n)) + geom_col(aes(fill=state_code)) + coord_flip() +
+  theme(legend.position="none") +
+  ggtitle("Number of startups in States") + xlab("States") + ylab("Count")
+```
+
+From the graph, we can observe that California (CA) state has the highest number of startups and the New York (NY) state is the second. Also, states like Massachusetts (MA), Texas (TX) and Washington (WA) have more number of startups.
+
+```{r}
+# Top 10 market leaders
+dat %>% filter(market!="") %>% count(market)%>% arrange(-n) %>% head(10) %>%
+ ggplot(aes(reorder(market, n), n)) + geom_col(aes(fill=market)) + coord_flip() +
+ theme(legend.position="none") +
+ ggtitle("Top 10 Market Leaders") + xlab("Markets") + ylab("Count")
+```
+
+We can observe that many startups are in the field of software, Biotechnology, Health Care, E-Commerce.
+
+```{r}
+# Markets
+dat %>% count(market)%>% arrange(-n) %>% head(30) %>%
+  ggplot(aes(reorder(market, n), n)) + geom_col(aes(fill=market)) + coord_flip() +
+  theme(legend.position="none") +
+  ggtitle("Number of Startups in Different Markets") + xlab("Markets") + ylab("Count")
+```
+
+We can observe that many startups are in the field of software, Biotechnology, Health Care, E-Commerce.
+
+```{r}
+# Regions
+dat %>% count(region)%>% arrange(-n) %>% head(20) %>%
+  ggplot(aes(reorder(region, n), n)) + geom_col(aes(fill=region)) + coord_flip() +
+  theme(legend.position="none") +
+  ggtitle("Number of Startups in Region") + xlab("Regions") + ylab("Count")
+```
+
+Regions like San Francisco Bay Area, New York City, Boston, Los Angeles and Washington DC have many number of startups.
+
+```{r}
+# Cities
+dat %>% count(city)%>% arrange(-n) %>% head(30) %>%
+  ggplot(aes(reorder(city, n), n)) + geom_col(aes(fill=city)) + coord_flip() +
+  theme(legend.position="none") +
+  ggtitle("Number of Startups in Cities") + xlab("Cities") + ylab("Count")
+```
+
+San Francisco and New York have many more number of startups compared to other cities.
+
+```{r}
+# No. of Startups vs Status
+dat %>% count(status)%>% arrange(-n) %>%
+  ggplot(aes(reorder(status, n), n)) + geom_col(aes(fill=status))  +
+  theme(legend.position="none") +
+  ggtitle("No. of Startups vs Status") + xlab("Status") + ylab("Count")
+```
+
+We can observe that many startups established are still operating as of 2014. Also, many have been acquired and only few are closed which might operate in future.
+
+```{r}
+docs <- apply(dat['category_list'], 2, function(y) str_sub(y, 2, -2))
+docs <- apply(docs, 2, function(y) unlist(strsplit(y, "\\|")))
+docs <- Corpus(VectorSource(docs))
+```
+
+```{r}
+# Convert the text to lower case
+docs <- tm_map(docs, content_transformer(tolower))
+# Remove numbers
+docs <- tm_map(docs, removeNumbers)
+# Remove english common stopwords
+docs <- tm_map(docs, removeWords, stopwords("english"))
+# Remove your own stop word
+# specify your stopwords as a character vector
+#docs <- tm_map(docs, removeWords, c("blabla1", "blabla2")) 
+# Remove punctuations
+docs <- tm_map(docs, removePunctuation)
+# Eliminate extra white spaces
+#docs <- tm_map(docs, stripWhitespace)
+# Text stemming
+# docs <- tm_map(docs, stemDocument)
+```
+
+```{r}
+dtm <- TermDocumentMatrix(docs)
+m <- as.matrix(dtm)
+v <- sort(rowSums(m),decreasing=TRUE)
+d <- data.frame(word = names(v),freq=v)
+head(d, 10)
+```
+
+```{r}
+set.seed(1234)
+wordcloud(words = d$word, freq = d$freq, min.freq = 1,
+          max.words=200, random.order=FALSE, rot.per=0.35, 
+          colors=brewer.pal(8, "Dark2"))
+```
+
+```{r}
+findAssocs(dtm, terms = "health", corlimit = 0.3)
+```
+
+```{r}
+#Plot word frequencies
+barplot(d[1:10,]$freq, las = 2, names.arg = d[1:10,]$word,
+        col ="lightblue", main ="Most frequent words",
+        ylab = "Word frequencies")
+```
+
+```{r}
+d = data.frame(dat['market'],dat['post_success'],dat['status'],dat['founded_year'])
+d = subset(d, dat$market == "Software"|dat$market == "Biotechnology"|dat$market == "Mobile"|dat$market == "Enterprise Software"|dat$market == "Curated Web"|dat$market == "Health Care"|dat$market == "E-Commerce"|dat$market == "Hardware + Software"|dat$market == "Advertising"|dat$market == "Health and Wellness")
+```
+
+```{r}
+ggplot(data = d, aes(x=market, fill = post_success)) + 
+  theme_classic() +
+  ggtitle("Distribution of Success Among Top 10 Markets") + 
+  xlab("Market") +
+  ylab("Number of Companies") + 
+  geom_bar(position="dodge") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+We can observe that the startups in the field of software, advertising and biotechnology have more success rate when compared to others. 
+
+```{r}
+ggplot(data=dat, aes(x=post_success, y=venture, fill = post_success)) + 
+  theme_classic() +
+  geom_boxplot() + 
+  ggtitle("Distribution of Venture Capital Grouped by Success") + 
+  xlab("Success") +
+  ylab("Venture Capital")
+```
+
+We can observe that successful companies are backed by Venture capital. Even top companies like facebook, youtube, google are backed by venture capital in the initial stages.
+
+```{r}
+ggplot(data = d, aes(x=market, fill = status)) + 
+  theme_classic() +
+  ggtitle("Distribution of Current StartUps Status Among Top 10 Markets") + 
+  xlab("Market") +
+  ylab("Number of Companies") + 
+  geom_bar(position="dodge") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+d1 = subset(d, d$founded_year == 2000:2014)
+```
+
+```{r}
+ggplot(data = d1, aes(x=market, fill = founded_year)) + 
+  theme_classic() +
+  ggtitle("Distribution of StartUps Among Top 10 Markets") + 
+  xlab("Market") +
+  ylab("Number of Companies") + 
+  geom_bar(position="dodge") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+ggplot(data = d1, aes(x=founded_year, fill = market)) + 
+  theme_classic() +
+  ggtitle("Distribution of StartUps Success Among Top 10 Markets") + 
+  xlab("Founded Year") +
+  ylab("Number of Companies") + 
+  geom_bar(position="dodge") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+We can observe that more number of successful startups are in the field of software and biotechnology
+
+```{r}
+ggplot(data = d1, aes(x=founded_year, fill = post_success)) + 
+  theme_classic() +
+  ggtitle("Distribution of Success Among Startups Founded after 2000") + 
+  xlab("Founded Year") +
+  ylab("Number of Companies") + 
+  geom_bar(position="dodge") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+We can observe that the statups which have started before 2007 have good success rate.
+Between 2008-2010, the success rate of startups has reduced.
+After 2010, the success rate of startups increased.
+
+```{r}
+d2 = subset(dat, dat$founded_year == 2000:2014)
+ggplot(data = d2, aes(x=founded_year, fill = status)) + 
+  theme_classic() +
+  ggtitle("Distribution of Current StartUps Status Among Founded Year") + 
+  xlab("Founded Year") +
+  ylab("Number of Companies") + 
+  geom_bar(position="dodge") + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+We can observe that every year few successful companies are acquired, whereas as few are closed and the remaining stay operated.
+
+# Correlation Analysis
+
+```{r}
+datCorr <- dat
+datCorr$name <- NULL
+datCorr$category_list <- NULL
+datCorr$market <- NULL
+datCorr$status <- NULL
+datCorr$state_code <- NULL
+datCorr$region <- NULL
+datCorr$city <- NULL
+datCorr$founded_quarter <- NULL
+datCorr$post_success <- as.numeric(as.character(datCorr$post_success))
+
+str(datCorr)
+```
+
+We removed columns which are of type "character".
+
+```{r, warning=FALSE, message=FALSE}
+chart.Correlation(datCorr, 
+                  histogram=TRUE, 
+                  method = 'pearson',
+                  pch=19)
+```
+
+```{r, warning=FALSE, message=FALSE}
+rcorr(as.matrix(datCorr))
+```
+
+From the last matrix, we can see that **funding_rounds**, **founded_at**, **founded_year, seed, venture, post_ipo_equity, round_A, round_B, round_C, first_funding_day, first_funding_year, last_funding_month, last_funding_year are all significantly associated with outcome variable **post_success** (p-values < 0.01).
+
+# Results and Conclusion
+
+* California (CA) state has the highest number of startups and the New York (NY) state is in the second place.
+* Most of the startups are in the field of software, Biotechnology, Health Care, E-Commerce.
+* Regions like San Francisco Bay Area, New York City, Boston, Los Angeles and Washington DC have higher number of startups compared to other regions.
+* Startups in the field of software, advertising and biotechnology have more success rate when compared to others.
+* Successful companies are backed by Venture capital. Even top companies like facebook, youtube, google are backed by venture capital in the beginning.
+* Every year few successful companies are acquired, whereas as few are closed and the remaining stay operated.
+* More number of funding rounds, seed amount, venture capital, post IPO equity contributes to the success of a startup.
+* More funding in the initial rounds A,B,C can contribute to the success of a stratup.
+* We used 3 algorithms, namely the KNN, logistic regression and the gradient boosting model (GBM) to train 3 different machine learning models. Based, on AUC score we concluded that GBM is the best model.
+
+
+
+
+
+
+
+
+

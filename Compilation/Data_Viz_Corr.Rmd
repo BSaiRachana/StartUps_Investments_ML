@@ -1,13 +1,14 @@
 ---
 title: "Startup Investments"
-subtitle: <h3>Predicting the success of the startup companies using Machine Learning</h3></br>
-author: 
-- "Group 6"
-- "Vineeth Penugonda, Sai Rachana Bandi, Chandra Vardhan"
+author:
+- Group 6
+- Vineeth Penugonda, Sai Rachana Bandi, Chandra Vardhan
 date: "</br>`r format(Sys.time(), '%d %B %Y')`"
 output:
+  word_document: default
   html_document:
     df_print: paged
+subtitle: <h3>Predicting the success of the startup companies using Machine Learning</h3></br>
 ---
 
 ```{r setup, echo=FALSE}
@@ -357,7 +358,7 @@ viz_data %>% count(founded_year)%>% arrange(-n) %>% head(25) %>%
   geom_text(aes(x = founded_year, y=2000, label = "WhatsApp"), data = viz_data %>% filter(name == "WhatsApp"), size=4, vjust=-0.3, hjust=-0.3)
 ```
 
-For the graph we can observe that many successful companies like Facebook, Twitter, Uber, YOuTube, WhatsApp intially started as startups after 2000. Also, the number of startup companies started in a year increased significantly from 2000.
+From the graph, we can observe that many successful companies like Facebook, Twitter, Uber, YouTube, WhatsApp intially started as startups after the year 2000. Also, the number of startup companies started in a year increased significantly from the year 2000.
 
 ```{r}
 # State Code
@@ -367,7 +368,7 @@ dat %>% count(state_code)%>% arrange(-n) %>% head(20) %>%
   ggtitle("Number of startups in States") + xlab("States") + ylab("Count")
 ```
 
-For the graph we can observe that California (CA) state has the highest number of startups and the New York (NY) state is the second. Also, states like Massachusetts (MA), Texas (TX) and Washington (WA) have more number of startups.
+From the graph, we can observe that California (CA) state has the highest number of startups and the New York (NY) state is the second. Also, states like Massachusetts (MA), Texas (TX) and Washington (WA) have more number of startups.
 
 ```{r}
 # Top 10 market leaders
@@ -407,7 +408,7 @@ dat %>% count(city)%>% arrange(-n) %>% head(30) %>%
   ggtitle("Number of Startups in Cities") + xlab("Cities") + ylab("Count")
 ```
 
-Cities like San Francisco and New York have many number of startups.
+San Francisco and New York have many more number of startups compared to other cities.
 
 ```{r}
 # No. of Startups vs Status
@@ -417,7 +418,7 @@ dat %>% count(status)%>% arrange(-n) %>%
   ggtitle("No. of Startups vs Status") + xlab("Status") + ylab("Count")
 ```
 
-We can observe that many startups established are still operating currently. Whereas, many are acquired and only few are closed which can be operating in future.
+We can observe that many startups established are still operating as of 2014. Also, many have been acquired and only few are closed which might operate in future.
 
 ```{r}
 docs <- apply(dat['category_list'], 2, function(y) str_sub(y, 2, -2))
@@ -508,7 +509,7 @@ ggplot(data=dat, aes(x=post_success, y=venture, fill = post_success)) +
   ylab("Venture Capital")
 ```
 
-We can observe that successful companies are backed by Venture capital. Even top companies like facebook, youtube, google are backed by venture capital in the beginning.
+We can observe that successful companies are backed by Venture capital. Even top companies like facebook, youtube, google are backed by venture capital in the initial stages.
 
 ```{r}
 ggplot(data = d, aes(x=market, fill = status)) + 
@@ -557,7 +558,9 @@ ggplot(data = d1, aes(x=founded_year, fill = post_success)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-We can observe that the statups started have good success rate till 2007 after which the success rate was reduced but after 2010 again it increased.
+We can observe that the statups which have started before 2007 have good success rate.
+Between 2008-2010, the success rate of startups has reduced.
+After 2010, the success rate of startups increased.
 
 ```{r}
 d2 = subset(dat, dat$founded_year == 2000:2014)
@@ -570,7 +573,7 @@ ggplot(data = d2, aes(x=founded_year, fill = status)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-We can observe that every year few success companies are acquired, whereas as few are closed and the remaining stay operated.
+We can observe that every year few successful companies are acquired, whereas as few are closed and the remaining stay operated.
 
 # Correlation Analysis
 
@@ -604,10 +607,17 @@ rcorr(as.matrix(datCorr))
 
 From the last matrix, we can see that **funding_rounds**, **founded_at**, **founded_year, seed, venture, post_ipo_equity, round_A, round_B, round_C, first_funding_day, first_funding_year, last_funding_month, last_funding_year are all significantly associated with outcome variable **post_success** (p-values < 0.01).
 
+# Results and Conclusion
 
-
-
-
+* California (CA) state has the highest number of startups and the New York (NY) state is in the second place.
+* Most of the startups are in the field of software, Biotechnology, Health Care, E-Commerce.
+* Regions like San Francisco Bay Area, New York City, Boston, Los Angeles and Washington DC have higher number of startups compared to other regions.
+* Startups in the field of software, advertising and biotechnology have more success rate when compared to others.
+* Successful companies are backed by Venture capital. Even top companies like facebook, youtube, google are backed by venture capital in the beginning.
+* Every year few successful companies are acquired, whereas as few are closed and the remaining stay operated.
+* More number of funding rounds, seed amount, venture capital, post IPO equity contributes to the success of a startup.
+* More funding in the initial rounds A,B,C can contribute to the success of a stratup.
+* We used 3 algorithms, namely the KNN, logistic regression and the gradient boosting model (GBM) to train 3 different machine learning models. Based, on AUC score we concluded that GBM is the best model.
 
 
 
