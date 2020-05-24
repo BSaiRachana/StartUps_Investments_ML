@@ -5,9 +5,9 @@ author:
 - Vineeth Penugonda, Sai Rachana Bandi, Chandra Vardhan
 date: "</br>`r format(Sys.time(), '%d %B %Y')`"
 output:
-  word_document: default
   html_document:
     df_print: paged
+  word_document: default
 subtitle: <h3>Predicting the success of the startup companies using Machine Learning</h3></br>
 ---
 ```{r, warning=FALSE, message=FALSE}
@@ -34,6 +34,8 @@ registerDoParallel(cl)
 #dat <- readRDS("../Dataset/Data_Cleansed.rds")
 dat <- readRDS("../Dataset/Data_CE_Filtered.rds")
 datCopy <- dat
+datCopy$post_ipo_equity <- NULL
+datCopy$status <- NULL
 #datCopy$name <- NULL
 ```
 
